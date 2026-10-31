@@ -196,8 +196,12 @@ function dates(){
 
 function showApp(on){
  $("authCard").hidden=on;
- $("appCard").hidden=!on;
- ["tripCard","daysCard","stopsCard","mapCard","backupCard"].forEach(id=>$(id).hidden=!on);
+ $("appCard").hidden=true;
+ $("tripCard").hidden=true;
+ $("daysCard").hidden=!on;
+ $("stopsCard").hidden=!on;
+ $("mapCard").hidden=!on;
+ $("backupCard").hidden=!on;
 }
 
 async function auth(mode){
@@ -254,7 +258,9 @@ async function loadTrips(){
    $("tripSelect").innerHTML="";
    $("memberInfo").textContent="Du har ännu inga resor. Skapa en ny resa eller öppna en inbjudningslänk.";
    current=null;
-   ["tripCard","daysCard","stopsCard","mapCard"].forEach(id=>$(id).hidden=true);
+   $("appCard").hidden=true;
+   $("tripCard").hidden=true;
+   ["daysCard","stopsCard","mapCard"].forEach(id=>$(id).hidden=true);
    $("backupCard").hidden=false;
    return;
   }
@@ -296,12 +302,15 @@ async function loadTrip(){
  $("startDate").value=current.start_date||"";
  $("endDate").value=current.end_date||"";
  ["hotel","outbound","return","events","other"].forEach(k=>$(k).value=details[k]||"");
- ["tripCard","daysCard","stopsCard","mapCard","backupCard"].forEach(id=>$(id).hidden=false);
+ $("appCard").hidden=true;
+ $("tripCard").hidden=true;
+ $("daysCard").hidden=false;
+ $("stopsCard").hidden=false;
+ $("mapCard").hidden=false;
+ $("backupCard").hidden=true;
  render();
  subscribe();
-}
-
-function render(){
+}function render(){
  if(!current)return;
  $("dateSummary").textContent=fmt(current.start_date)+" – "+fmt(current.end_date);
  $("dayTabs").innerHTML=dates().map(d=>`<button class="day ${d===selectedDate?"active":""}" data-date="${d}">${short(d)}</button>`).join("");
@@ -540,13 +549,17 @@ $("menuToggle").onclick=()=>{
  panel.hidden=!panel.hidden;
  $("menuToggle").setAttribute("aria-expanded",String(!panel.hidden));
 };
+
 $("menuPanel").onclick=e=>{
  const b=e.target.closest("[data-target]");
  if(!b)return;
  const target=$(b.dataset.target);
  $("menuPanel").hidden=true;
  $("menuToggle").setAttribute("aria-expanded","false");
- if(target&&!target.hidden)target.scrollIntoView({behavior:"smooth",block:"start"});
+ if(target){
+  target.hidden=false;
+  target.scrollIntoView({behavior:"smooth",block:"start"});
+ }
 };
 
 document.addEventListener("click",e=>{
