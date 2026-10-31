@@ -1,197 +1,270 @@
 
-
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="sv">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<meta name="theme-color" content="#172b3a">
-
-<title>Min Londonresa 🇬🇧</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17365d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Londonresan">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<title>Londonresan · 6–10 nov 2026</title>
 <style>
-
-body{margin:0;font-family:Arial,sans-serif;background:#f4f2ed;color:#243342}
-
-header{background:#172b3a;color:white;padding:25px 18px}
-
-h1{margin:0 0 8px;font-size:27px}
-
-header p{margin:0;color:#dce5ec}
-
-main{padding:16px;max-width:700px;margin:auto}
-
-.tabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:15px}
-
-button{border:0;border-radius:10px;padding:12px;background:#dce3e8;color:#172b3a;font-weight:bold}
-
-button.active{background:#172b3a;color:white}
-
-.card{background:white;border-radius:14px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #0001}
-
-.stop{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee}
-
-.stop:last-child{border:0}
-
-.stop input{width:21px;height:21px;margin-top:2px}
-
-.stop label{flex:1;line-height:1.4}
-
-.done{text-decoration:line-through;color:#888}
-
-a{color:#176b91}
-
-.small{font-size:13px;color:#667}
-
-input[type=text]{padding:12px;border:1px solid #bbb;border-radius:9px;width:65%;max-width:280px}
-
-.add{background:#176b91;color:white;margin:8px 0}
-
-.map{display:block;text-align:center;background:#e6eef2;padding:13px;border-radius:10px;margin-top:12px;text-decoration:none}
-
-footer{text-align:center;color:#777;font-size:12px;padding:20px}
-
+:root{--navy:#17365d;--blue:#24558a;--ink:#172536;--muted:#66758a;--bg:#f3f6fa;--card:#fff;--line:#e2e8f0;--green:#16845b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:calc(16px + env(safe-area-inset-top)) 18px 18px}
+h1{font-size:25px;margin:4px 0 3px}
+header p{margin:0;color:#dce9f8;font-size:13px}
+.topline{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c8dbef}
+.stats{display:flex;gap:9px;margin-top:15px}
+.stat{background:#ffffff18;border:1px solid #ffffff25;border-radius:12px;padding:9px 11px;flex:1}
+.stat b{display:block;font-size:19px}
+.stat span{font-size:11px;color:#dce9f8}
+main{max-width:760px;margin:auto;padding:13px 13px calc(35px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px #152c4510}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-size:15px;font-weight:750}
+.daytabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.daytab{border:0;border-radius:10px;padding:10px 2px;background:#edf1f6;color:#42536a;font-weight:700;font-size:12px}
+.daytab.active{background:var(--navy);color:#fff}
+.daytab small{display:block;font-size:10px;font-weight:500;opacity:.8;margin-top:3px}
+.progress{height:7px;background:#e8edf3;border-radius:20px;overflow:hidden;margin-top:10px}
+.progress>div{height:100%;background:#27a477;width:0;transition:width .2s}
+.item{border:1px solid var(--line);border-radius:13px;padding:12px;margin:9px 0;background:#fff}
+.item.done{background:#f1f6f3;border-color:#cfe4d8;opacity:.8}
+.itemtop{display:flex;align-items:flex-start;gap:10px}
+.check{width:23px;height:23px;accent-color:var(--green);flex:none;margin:0}
+.itemtitle{font-weight:750;font-size:14px;line-height:1.3;flex:1}
+.time{font-size:11px;color:var(--blue);font-weight:700;white-space:nowrap}
+.addr{font-size:12px;color:#58677a;margin:6px 0 3px 33px;line-height:1.4}
+.note{font-size:12px;color:var(--muted);margin-left:33px}
+.actions{display:flex;gap:7px;margin:10px 0 0 33px;flex-wrap:wrap}
+button,.btn{cursor:pointer;border:0;border-radius:10px;padding:9px 11px;font-weight:700;font-size:12px}
+.primary{background:var(--navy);color:white}
+.secondary{background:#edf2f7;color:#24415f}
+.danger{background:#fff0ef;color:#a43d36}
+.small{padding:7px 9px;font-size:11px}
+#map{height:340px;border-radius:13px;overflow:hidden;background:#e9eef3}
+.mapnote{font-size:11px;color:var(--muted);margin:8px 1px 0;line-height:1.4}
+.dayintro{font-size:13px;color:var(--muted);line-height:1.45;margin:0 0 12px}
+.fixedrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.fixedrow:last-child{border:0}
+.fixedrow .ico{font-size:20px;width:27px}
+.fixedrow b{font-size:13px}
+.fixedrow small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+input,select,textarea{width:100%;border:1px solid #ccd6e2;border-radius:10px;padding:11px;font:inherit;font-size:14px;background:white;color:var(--ink)}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.formbuttons{display:flex;gap:8px;margin-top:12px}
+.notice{background:#fff8e9;border:1px solid #f1dfb9;border-radius:12px;padding:11px;font-size:12px;color:#76551d;line-height:1.45}
+footer{text-align:center;color:#7c8999;font-size:11px;padding:10px}
+a{color:#175b9a}
+@media(max-width:390px){.daytab{font-size:11px}.daytab small{font-size:9px}.stats{gap:6px}.stat{padding:8px}.stat b{font-size:17px}#map{height:300px}}
 </style>
-
 </head>
-
 <body>
-
 <header>
-
-<h1>🇬🇧 Min Londonresa</h1>
-
-<p>6–10 november 2026 · London</p>
-
+ <div class="topline"><span>Reseplanerare · London</span><span>6–10 nov 2026</span></div>
+ <h1>Londonresan 🇬🇧</h1>
+ <p>Era stopp, dagsschema och karta – i fickan.</p>
+ <div class="stats">
+  <div class="stat"><b id="totalCount">15</b><span>Planerade stopp</span></div>
+  <div class="stat"><b id="doneCount">0</b><span>Avklarade</span></div>
+  <div class="stat"><b id="leftCount">15</b><span>Kvar totalt</span></div>
+ </div>
 </header>
-
 <main>
-
-<div class="card">
-
-<strong>🏨 Hotell</strong><br>
-
-DoubleTree by Hilton London – Chelsea<br>
-
-Imperial Road, London SW6 2GA
-
-<br><br><strong>✈️ Flyg</strong><br>
-
-Ankomst: Gatwick fredag 6/11<br>
-
-Hemresa: Gatwick tisdag 10/11 kl. 17:30
-
-</div>
-
-<div class="tabs" id="tabs"></div>
-
-<div class="card">
-
-<h2 id="daytitle"></h2>
-
-<p class="small" id="daynote"></p>
-
-<div id="stops"></div>
-
-<div style="margin-top:15px">
-
-<input id="newstop" type="text" placeholder="Lägg till ett stopp">
-
-<button class="add" onclick="addStop()">＋ Lägg till</button>
-
-</div>
-
-<a class="map" id="maplink" target="_blank">📍 Öppna dagens platser i Google Maps</a>
-
-</div>
-
-<div class="card">
-
-<strong>🎤 Söndag 8 november</strong><br>
-
-Konsert kl. 18:30<br>
-
-O2 Academy Brixton<br>
-
-211 Stockwell Road, London SW9 9SL
-
-</div>
-
-<div class="card">
-
-<strong>🧳 Kom ihåg</strong>
-
-<p class="small">Ankomst till Gatwick i god tid före hemresan. Sikta på att lämna hotellet omkring kl. 13:00 på tisdagen, men kontrollera aktuella tågtider.</p>
-
-<button onclick="backup()">Spara säkerhetskopia</button>
-
-<button onclick="document.getElementById('restore').click()">Återställ kopia</button>
-
-<input id="restore" type="file" accept=".json" hidden onchange="restore(event)">
-
-</div>
-
+ <section class="card">
+  <div class="section-title"><span>Välj dag</span><span id="dayDate" style="font-size:11px;color:var(--muted)">7 november</span></div>
+  <div class="daytabs" id="dayTabs">
+   <button class="daytab" data-day="Fredag">Fre<small>6/11</small></button>
+   <button class="daytab active" data-day="Lördag">Lör<small>7/11</small></button>
+   <button class="daytab" data-day="Söndag">Sön<small>8/11</small></button>
+   <button class="daytab" data-day="Måndag">Mån<small>9/11</small></button>
+   <button class="daytab" data-day="Tisdag">Tis<small>10/11</small></button>
+  </div>
+  <div class="progress"><div id="dayProgress"></div></div>
+  <div id="dayProgressText" style="font-size:11px;color:var(--muted);margin-top:6px">0 av 5 stopp avklarade</div>
+ </section>
+ <section class="card">
+  <div class="section-title"><span id="scheduleTitle">Lördag · Camden & shopping</span><span id="dayCount" style="font-size:11px;color:var(--muted)">5 stopp</span></div>
+  <p class="dayintro" id="dayIntro">Camden på förmiddagen, museum och West End senare på dagen.</p>
+  <div id="schedule"></div>
+  <button class="secondary" id="addToggle" style="width:100%;margin-top:8px">＋ Lägg till ett stopp</button>
+  <form id="addForm" hidden>
+   <label for="newName">Platsens namn</label><input id="newName" required placeholder="Exempel: Buckingham Palace">
+   <label for="newAddress">Adress i London</label><textarea id="newAddress" required rows="2" placeholder="Gata, postnummer, London"></textarea>
+   <div class="formgrid">
+    <div><label for="newTime">Tid</label><input id="newTime" placeholder="t.ex. 16:00"></div>
+    <div><label for="newDay">Dag</label><select id="newDay"><option>Fredag</option><option selected>Lördag</option><option>Söndag</option><option>Måndag</option><option>Tisdag</option></select></div>
+   </div>
+   <label for="newNote">Anteckning (valfritt)</label><input id="newNote" placeholder="Vad vill ni göra här?">
+   <div class="formbuttons"><button class="primary" type="submit">Spara plats</button><button class="secondary" type="button" id="cancelAdd">Avbryt</button></div>
+   <p class="mapnote">När ni sparar platsen försöker appen hitta den på kartan. Kontrollera att markören hamnar rätt.</p>
+  </form>
+  <form id="editForm" hidden style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">
+   <div class="section-title"><span>Redigera stopp</span><span style="font-size:11px;color:var(--muted)">Alla ändringar sparas</span></div>
+   <input id="editId" type="hidden">
+   <label for="editName">Platsens namn</label><input id="editName" required>
+   <label for="editAddress">Adress i London</label><textarea id="editAddress" required rows="2"></textarea>
+   <div class="formgrid"><div><label for="editTime">Tid</label><input id="editTime" type="time"></div>
+   <div><label for="editDay">Dag</label><select id="editDay"><option>Fredag</option><option>Lördag</option><option>Söndag</option><option>Måndag</option><option>Tisdag</option></select></div></div>
+   <label for="editNote">Anteckning</label><input id="editNote">
+   <div class="formbuttons"><button class="primary" type="submit">Spara ändringar</button><button class="secondary" type="button" id="cancelEdit">Avbryt</button></div>
+  </form>
+ </section>
+ <section class="card">
+  <div class="section-title"><span>Londonkartan</span><button class="secondary small" id="fitMap">Visa alla</button></div>
+  <div id="map" role="application" aria-label="Karta över dagens stopp"></div>
+  <p class="mapnote">Kartan visar endast dagens ej avbockade stopp, sorterade efter tid. Nya och flyttade stopp uppdaterar kartan automatiskt. Linjen mellan markörerna är en översikt, inte en exakt gångväg. Tryck på ett stopp för adress och navigering. Kartunderlag kräver internet.</p>
+  <button class="primary" id="googleRoute" style="width:100%;margin-top:9px">Öppna dagens rutt i Google Maps ↗</button>
+ </section>
+ <section class="card">
+  <div class="section-title">Fasta reseuppgifter</div>
+  <div class="fixedrow"><span class="ico">🏨</span><div><b>DoubleTree by Hilton London – Chelsea</b><small>Imperial Road, Imperial Wharf, London SW6 2GA</small><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=DoubleTree+by+Hilton+London+Chelsea">Öppna hotellkarta</a></div></div>
+  <div class="fixedrow"><span class="ico">🎤</span><div><b>O2 Academy Brixton</b><small>Söndag 8/11 · Konsert 18:30 · 211 Stockwell Road, London SW9 9SL</small><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=O2+Academy+Brixton">Öppna arenakartan</a></div></div>
+  <div class="fixedrow"><span class="ico">✈️</span><div><b>Gatwick Airport</b><small>Hemresa tisdag 10/11 · Flyg 17:30 · Sikta på ankomst 14:30–15:00</small><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Gatwick+Airport">Öppna flygplatskartan</a></div></div>
+ </section>
+ <section class="card">
+  <div class="section-title">Spara och dela er plan</div>
+  <p class="dayintro">Ändringar sparas automatiskt på den här enheten. Använd export/import för att flytta er plan till den andra iPhonen.</p>
+  <div class="formbuttons">
+   <button class="secondary" id="exportBtn" style="flex:1">Exportera backup</button>
+   <button class="secondary" id="importBtn" style="flex:1">Importera backup</button>
+   <input id="importFile" type="file" accept="application/json" hidden>
+  </div>
+  <p class="mapnote">Tips: exportera efter större ändringar och skicka backupfilen till varandra via AirDrop eller Meddelanden.</p>
+  <div class="notice" style="margin-top:10px">Observera: checkrutor och egna tillägg sparas lokalt på varje telefon. För att dela samma uppdateringar live mellan två telefoner behövs en gemensam molndatabas; det ingår inte i denna första version.</div>
+ </section>
+ <footer>Londonresan · Privat reseplan · Kartdata © OpenStreetMap-bidragsgivare</footer>
 </main>
-
-<footer>Din personliga Londonresa · Ändringar sparas på den här enheten</footer>
-
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-
-const days=[
-
-{date:"Fredag 6 november",note:"Ankomst och incheckning",stops:["Flyg från Arlanda ca 14:30","Ankomst Gatwick","Resa till hotellet","Checka in på DoubleTree by Hilton London – Chelsea","Middag och vila"]},
-
-{date:"Lördag 7 november",note:"Shopping och sevärdheter",stops:["Camden Market och Camden Lock","Madame Tussauds","British Museum","Hollister – Regent Street","Hard Rock Cafe – Piccadilly Circus"]},
-
-{date:"Söndag 8 november",note:"Park och konsert",stops:["Battersea Park","Vila och gör dig klar","Konsert 18:30 – O2 Academy Brixton"]},
-
-{date:"Måndag 9 november",note:"London runt",stops:["Brick Lane","Millennium Bridge","London Eye","Big Ben","St James's Park","Trafalgar Square","10 John Adam Street","Covent Garden"]},
-
-{date:"Tisdag 10 november",note:"Hemresa",stops:["Frukost och packa","Checka ut från hotellet","Lunch eller sista shopping","Resa till Gatwick","Flyg hem kl. 17:30"]}
-
+const hotel={name:"DoubleTree by Hilton London – Chelsea",address:"Imperial Road, Imperial Wharf, London SW6 2GA",lat:51.4740042,lon:-0.1837219};
+const initial=[
+{id:"camden",day:"Lördag",name:"Unique Fashion Camden / Camden Lock",address:"Unit 2, Ground Floor, Camden Lock Place, London NW1 8AG",time:"10:00",note:"Shopping och Camden Market",lat:51.5414156,lon:-0.1468108},
+{id:"madame",day:"Lördag",name:"Madame Tussauds London",address:"Marylebone Road, London NW1 5LR",time:"12:45",note:"Boka entrétid",lat:51.5230052,lon:-0.1544133},
+{id:"museum",day:"Lördag",name:"British Museum",address:"Great Russell Street, London WC1B 3DG",time:"14:45",note:"Museibesök",lat:51.5194133,lon:-0.1269566},
+{id:"hollister",day:"Lördag",name:"Hollister Regent Street",address:"83–97 Regent Street, London W1B 4ES",time:"17:00",note:"Shopping",lat:51.5098983,lon:-0.13754},
+{id:"hardrock",day:"Lördag",name:"Hard Rock Cafe Piccadilly Circus",address:"Criterion Building, 225–229 Piccadilly, London W1J 9HR",time:"18:00",note:"Middag",lat:51.5097593,lon:-0.1338578},
+{id:"battersea",day:"Söndag",name:"Battersea Park",address:"Battersea Park Road, London SW11 4NJ",time:"10:30",note:"Promenad och park",lat:51.4791075,lon:-0.1564981},
+{id:"brixton",day:"Söndag",name:"O2 Academy Brixton",address:"211 Stockwell Road, Brixton, London SW9 9SL",time:"18:30",note:"Konsert – sikta på att vara på plats 17:15",lat:51.4659,lon:-0.1145},
+{id:"brick",day:"Måndag",name:"Brick Lane",address:"Brick Lane, London E1",time:"10:00",note:"Marknader, street art och shopping",lat:51.5219999,lon:-0.0716915},
+{id:"millennium",day:"Måndag",name:"Millennium Bridge",address:"Millennium Bridge, London EC4V 3QH",time:"12:00",note:"Utsikt mot St Paul's Cathedral",lat:51.5095291,lon:-0.0985425},
+{id:"eye",day:"Måndag",name:"London Eye",address:"Riverside Building, County Hall, London SE1 7PB",time:"13:00",note:"Boka biljett i förväg",lat:51.5031864,lon:-0.1195192},
+{id:"bigben",day:"Måndag",name:"Big Ben / Elizabeth Tower",address:"Westminster, London SW1A 0AA",time:"14:20",note:"Fotostopp",lat:51.5007292,lon:-0.1246254},
+{id:"stjames",day:"Måndag",name:"St James's Park",address:"London SW1A 2BJ",time:"14:45",note:"Promenad genom parken",lat:51.502967,lon:-0.1339534},
+{id:"trafalgar",day:"Måndag",name:"Trafalgar Square",address:"Trafalgar Square, London WC2N 5DS",time:"15:30",note:"Fotostopp",lat:51.508039,lon:-0.128069},
+{id:"johnadam",day:"Måndag",name:"10 John Adam Street",address:"10 John Adam Street, London WC2R 0DE",time:"16:00",note:"Adress från er tredje karta",lat:51.5097685,lon:-0.1222011},
+{id:"covent",day:"Måndag",name:"Covent Garden",address:"Covent Garden, London WC2E",time:"16:30",note:"Shopping, fika och middag",lat:51.5116571,lon:-0.1240436}
 ];
-
-let current=0;
-
-let saved=JSON.parse(localStorage.getItem("londonStops")||"null")||days.map(d=>d.stops.map(s=>({name:s,done:false})));
-
-function save(){localStorage.setItem("londonStops",JSON.stringify(saved))}
-
-function show(){
-
-document.getElementById("tabs").innerHTML=days.map((d,i)=>`<button class="${i===current?'active':''}" onclick="current=${i};show()">${["Fre","Lör","Sön","Mån","Tis"][i]}</button>`).join("");
-
-document.getElementById("daytitle").textContent=days[current].date;
-
-document.getElementById("daynote").textContent=days[current].note;
-
-document.getElementById("stops").innerHTML=saved[current].map((s,i)=>`<div class="stop"><input type="checkbox" ${s.done?'checked':''} onchange="saved[${current}][${i}].done=this.checked;save();show()"><label class="${s.done?'done':''}">${esc(s.name)}</label><button onclick="removeStop(${i})">×</button></div>`).join("");
-
-let q=saved[current].map(s=>s.name+" London").join("/");
-
-document.getElementById("maplink").href="https://www.google.com/maps/dir/"+encodeURIComponent(q);
-
+const dayDates={Fredag:"6 november",Lördag:"7 november",Söndag:"8 november",Måndag:"9 november",Tisdag:"10 november"};
+const dayInfo={Fredag:"Flyg från Arlanda kl. 14:30. Ankomst Gatwick, tåg till Clapham Junction och vidare till hotellet.",Lördag:"Camden på förmiddagen, museum och West End senare på dagen.",Söndag:"Lugn förmiddag med Battersea Park. Vila på hotellet och åk mot Brixton i god tid till konserten 18:30.",Måndag:"Starta österut i Brick Lane och fortsätt västerut via Themsen, Westminster och Covent Garden.",Tisdag:"Utcheckning, sista lunch och avresa mot Gatwick. Flyg hem kl. 17:30."};
+let state={day:"Lördag",items:initial,done:[]};
+try{const saved=localStorage.getItem("london-trip-v1");if(saved){const parsed=JSON.parse(saved);state={...state,...parsed};}}catch(e){}
+function persist(){localStorage.setItem("london-trip-v1",JSON.stringify(state));}
+const map=L.map('map',{scrollWheelZoom:false}).setView([51.51,-0.13],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
+let markerLayer=L.layerGroup().addTo(map),routeLine=null;
+const $=id=>document.getElementById(id);
+function googleSearch(item){return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(item.name+' '+item.address)}
+function render(){
+ document.querySelectorAll('.daytab').forEach(b=>b.classList.toggle('active',b.dataset.day===state.day));
+ $('dayDate').textContent=dayDates[state.day];
+ $('scheduleTitle').textContent=state.day+' · '+({Fredag:'Resdag',Lördag:'Camden & shopping',Söndag:'Park & konsert',Måndag:'East London & klassiska London',Tisdag:'Hemresa'}[state.day]);
+ $('dayIntro').textContent=dayInfo[state.day];
+ const all=state.items, dayItems=all.filter(x=>x.day===state.day).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')), left=dayItems.filter(x=>!state.done.includes(x.id));
+ $('totalCount').textContent=all.length;$('doneCount').textContent=state.done.length;$('leftCount').textContent=all.length-state.done.length;
+ $('dayCount').textContent=dayItems.length+' stopp';
+ const doneToday=dayItems.length-left.length;
+ $('dayProgress').style.width=(dayItems.length?doneToday/dayItems.length*100:0)+'%';
+ $('dayProgressText').textContent=doneToday+' av '+dayItems.length+' stopp avklarade';
+ $('schedule').innerHTML='';
+ if(!dayItems.length){$('schedule').innerHTML='<p class="dayintro">Inga stopp ännu. Lägg till en plats nedan.</p>';}
+ dayItems.forEach((it)=>{
+  const isDone=state.done.includes(it.id);
+  const el=document.createElement('div');el.className='item'+(isDone?' done':'');
+  const top=document.createElement('div');top.className='itemtop';
+  const cb=document.createElement('input');cb.type='checkbox';cb.className='check';cb.checked=isDone;cb.setAttribute('aria-label','Markera '+it.name+' som avklarat');
+  cb.addEventListener('change',()=>{state.done=cb.checked?[...state.done,it.id]:state.done.filter(x=>x!==it.id);persist();render();});
+  const title=document.createElement('div');title.className='itemtitle';title.textContent=it.name;
+  const time=document.createElement('div');time.className='time';time.textContent=it.time||'';
+  top.append(cb,title,time);el.append(top);
+  const addr=document.createElement('div');addr.className='addr';addr.textContent=it.address;el.append(addr);
+  if(it.note){const note=document.createElement('div');note.className='note';note.textContent=it.note;el.append(note);}
+  const actions=document.createElement('div');actions.className='actions';
+  const nav=document.createElement('a');nav.className='btn secondary small';nav.href=googleSearch(it);nav.target='_blank';nav.rel='noopener';nav.textContent='📍 Hitta hit';actions.append(nav);
+  const edit=document.createElement('button');edit.className='secondary small';edit.textContent='Redigera';edit.onclick=()=>editItem(it.id);actions.append(edit);
+  const del=document.createElement('button');del.className='danger small';del.textContent='Ta bort';del.onclick=()=>{if(confirm('Ta bort '+it.name+'?')){state.items=state.items.filter(x=>x.id!==it.id);state.done=state.done.filter(x=>x!==it.id);persist();render();}};actions.append(del);
+  el.append(actions);$('schedule').append(el);
+ });
+ drawMap(left);
 }
-
-function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-
-function addStop(){let v=document.getElementById("newstop").value.trim();if(!v)return;saved[current].push({name:v,done:false});document.getElementById("newstop").value="";save();show()}
-
-function removeStop(i){if(confirm("Ta bort detta stopp?")){saved[current].splice(i,1);save();show()}}
-
-function backup(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(saved)],{type:"application/json"}));a.download="londonresa-backup.json";a.click();URL.revokeObjectURL(a.href)}
-
-function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{saved=JSON.parse(r.result);save();show();alert("Kopian är återställd!")}catch{alert("Filen kunde inte läsas")}};r.readAsText(f)}
-
-show();
-
+function drawMap(items){
+ markerLayer.clearLayers();if(routeLine){map.removeLayer(routeLine);routeLine=null;}
+ const coords=[];
+ items.forEach((it)=>{
+  if(typeof it.lat!=='number'||typeof it.lon!=='number')return;
+  const marker=L.marker([it.lat,it.lon]).bindPopup('<b>'+escapeHtml(it.name)+'</b><br>'+escapeHtml(it.address)+'<br><a target="_blank" href="'+googleSearch(it)+'">Navigera med Google Maps</a>');
+  marker.addTo(markerLayer);coords.push([it.lat,it.lon]);
+ });
+ if(coords.length>1){routeLine=L.polyline(coords,{color:'#24558a',weight:4,opacity:.75,dashArray:'7 7'}).addTo(map);}
+ if(coords.length){const bounds=L.latLngBounds(coords);map.fitBounds(bounds.pad(.16));}
+ else map.setView([hotel.lat,hotel.lon],13);
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function editItem(id){
+ const it=state.items.find(x=>x.id===id);if(!it)return;
+ $('editId').value=it.id;$('editName').value=it.name;$('editAddress').value=it.address;
+ $('editTime').value=it.time||'';$('editDay').value=it.day;$('editNote').value=it.note||'';
+ $('editForm').hidden=false;$('editForm').scrollIntoView({behavior:'smooth',block:'center'});
+}
+async function locateItem(item){
+ const queries=[item.name+' '+item.address,item.address];
+ for(const q of queries){
+  try{const resp=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=gb&q='+encodeURIComponent(q));
+   if(!resp.ok)continue;const data=await resp.json();if(data&&data[0]){item.lat=Number(data[0].lat);item.lon=Number(data[0].lon);return true;}
+  }catch(err){}
+ }
+ return false;
+}
+$('editForm').addEventListener('submit',async e=>{
+ e.preventDefault();const it=state.items.find(x=>x.id===$('editId').value);if(!it)return;
+ const oldAddress=it.address;it.name=$('editName').value.trim();it.address=$('editAddress').value.trim();it.time=$('editTime').value;it.day=$('editDay').value;it.note=$('editNote').value.trim();
+ if(it.address!==oldAddress){it.lat=null;it.lon=null;}
+ $('editForm').hidden=true;persist();render();
+ if(it.lat===null||it.lon===null){const found=await locateItem(it);persist();render();if(!found)alert('Ändringarna sparades, men adressen kunde inte hittas automatiskt. Kontrollera stavningen eller använd Hitta hit.');}
+});
+$('cancelEdit').onclick=()=>{$('editForm').hidden=true;};
+$('dayTabs').addEventListener('click',e=>{const b=e.target.closest('[data-day]');if(b){state.day=b.dataset.day;persist();render();}});
+$('addToggle').onclick=()=>{$('addForm').hidden=!$('addForm').hidden;$('newDay').value=state.day;};
+$('cancelAdd').onclick=()=>{$('addForm').hidden=true;};
+$('addForm').addEventListener('submit',async e=>{
+ e.preventDefault();const name=$('newName').value.trim(),address=$('newAddress').value.trim(),day=$('newDay').value,time=$('newTime').value.trim(),note=$('newNote').value.trim();
+ const item={id:'custom-'+Date.now(),name,address,day,time,note,lat:null,lon:null};
+ state.items.push(item);persist();$('addForm').reset();$('addForm').hidden=true;state.day=day;render();
+ const found=await locateItem(item);persist();render();
+ if(!found)alert('Stoppet sparades i listan, men kartan kunde inte hitta adressen. Öppna Redigera och kontrollera adressen.');
+});
+$('googleRoute').onclick=()=>{
+ const items=state.items.filter(x=>x.day===state.day&&!state.done.includes(x.id));
+ const valid=items.filter(x=>x.lat!==null&&x.lon!==null);
+ if(!valid.length){alert('Det finns inga kvarvarande stopp för denna dag.');return;}
+ let url='https://www.google.com/maps/dir/?api=1&origin='+encodeURIComponent(hotel.address)+'&destination='+encodeURIComponent(valid[valid.length-1].address)+'&travelmode=transit';
+ if(valid.length>1)url+='&waypoints='+encodeURIComponent(valid.slice(0,-1).map(x=>x.address).join('|'));
+ window.open(url,'_blank');
+};
+$('fitMap').onclick=()=>{const items=state.items.filter(x=>x.day===state.day&&!state.done.includes(x.id));drawMap(items);};
+$('exportBtn').onclick=()=>{
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='londonresan-backup.json';a.click();URL.revokeObjectURL(a.href);
+};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.items)||!Array.isArray(obj.done))throw Error();state={...state,...obj};persist();render();alert('Resplanen har importerats.');}catch(err){alert('Filen kunde inte läsas. Välj en backup från Londonappen.');}};
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
-
 </body>
-
 </html>
