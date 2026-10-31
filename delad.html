@@ -310,7 +310,9 @@ async function loadTrip(){
  $("backupCard").hidden=true;
  render();
  subscribe();
-}function render(){
+}
+
+function render(){
  if(!current)return;
  $("dateSummary").textContent=fmt(current.start_date)+" – "+fmt(current.end_date);
  $("dayTabs").innerHTML=dates().map(d=>`<button class="day ${d===selectedDate?"active":""}" data-date="${d}">${short(d)}</button>`).join("");
