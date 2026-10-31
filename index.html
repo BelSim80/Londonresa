@@ -6,137 +6,162 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#17365d">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Reseplaneraren">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <title>Min reseplanerare</title>
 <style>
-:root{--navy:#17365d;--blue:#24558a;--ink:#172536;--muted:#66758a;--bg:#f3f6fa;--card:#fff;--line:#e2e8f0;--green:#16845b}
+:root{--navy:#17365d;--blue:#24558a;--ink:#172536;--muted:#536579;--bg:#f1f4f8;--card:#fff;--line:#d5deea;--green:#16845b}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:calc(18px + env(safe-area-inset-top)) 18px 20px}
-h1{font-size:27px;margin:7px 0 4px}
-.topline{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#dce9f8}
-header p{margin:0;color:#dce9f8;font-size:13px}
-.stats{display:flex;gap:8px;margin-top:15px}
-.stat{background:#ffffff18;border:1px solid #ffffff25;border-radius:12px;padding:9px 11px;flex:1}
-.stat b{display:block;font-size:19px}
-.stat span{font-size:11px;color:#dce9f8}
-main{max-width:780px;margin:auto;padding:13px 13px calc(35px + env(safe-area-inset-bottom))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px #152c4510}
-.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 10px;font-size:15px;font-weight:750}
-input,select,textarea{width:100%;border:1px solid #ccd6e2;border-radius:10px;padding:11px;font:inherit;font-size:14px;background:white;color:var(--ink)}
-label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px}
-button,.btn{cursor:pointer;border:0;border-radius:10px;padding:10px 12px;font-weight:700;font-size:12px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
+header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:calc(20px + env(safe-area-inset-top)) 18px 22px}
+h1{font-size:29px;margin:7px 0}
+header p{margin:0;color:#e4edf7;font-size:16px}
+.topline{font-size:13px;letter-spacing:.08em}
+.stats{display:flex;gap:8px;margin-top:17px}
+.stat{background:#ffffff20;border:1px solid #ffffff35;border-radius:13px;padding:10px;flex:1;text-align:center}
+.stat b{display:block;font-size:23px}
+.stat span{font-size:13px}
+main{max-width:780px;margin:auto;padding:14px 13px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #152c4510}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 13px;font-size:19px;font-weight:800}
+label{display:block;font-size:15px;font-weight:750;margin:13px 0 6px}
+input,select,textarea{width:100%;border:1px solid #aebdce;border-radius:11px;padding:13px;font:inherit;font-size:17px;background:white;color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+button{cursor:pointer;border:0;border-radius:11px;padding:13px 15px;font-weight:750;font-size:16px;line-height:1.25}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #f0a928;outline-offset:2px}
 .primary{background:var(--navy);color:white}
-.secondary{background:#edf2f7;color:#24415f}
-.danger{background:#fff0ef;color:#a43d36}
-.small{padding:7px 9px;font-size:11px}
-.row{display:flex;gap:9px}
+.secondary{background:#eaf0f6;color:#203e5d}
+.danger{background:#fff0ef;color:#963a34}
+.small{padding:10px 12px;font-size:14px}
+.row{display:flex;gap:10px}
 .row>div{flex:1;min-width:0}
-.days{display:flex;gap:6px;overflow-x:auto;padding:8px 0}
-.daytab{min-width:76px;border:0;border-radius:10px;padding:10px 7px;background:#edf1f6;color:#42536a;font-weight:700}
-.daytab.active{background:var(--navy);color:#fff}
-.daytab small{display:block;font-size:10px;font-weight:500;margin-top:3px}
-.item{border:1px solid var(--line);border-radius:13px;padding:12px;margin:9px 0;background:#fff}
-.item.done{background:#f1f6f3;border-color:#cfe4d8;opacity:.72}
-.itemtop{display:flex;align-items:flex-start;gap:10px}
-.check{width:23px;height:23px;accent-color:var(--green);flex:none;margin:0}
-.itemtitle{font-weight:750;font-size:14px;line-height:1.3;flex:1}
-.time{font-size:11px;color:var(--blue);font-weight:700;white-space:nowrap}
-.addr{font-size:12px;color:#58677a;margin:6px 0 3px 33px;line-height:1.4}
-.note{font-size:12px;color:var(--muted);margin-left:33px}
-.actions{display:flex;gap:7px;margin:10px 0 0 33px;flex-wrap:wrap}
-.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.formbuttons{display:flex;gap:8px;margin-top:12px}
-#map{height:330px;border-radius:13px;overflow:hidden;background:#e9eef3}
-.mapnote,.hint{font-size:11px;color:var(--muted);margin:8px 1px 0;line-height:1.45}
-.notice{background:#fff8e9;border:1px solid #f1dfb9;border-radius:12px;padding:11px;font-size:12px;color:#76551d;line-height:1.45}
+.days{display:flex;gap:7px;overflow-x:auto;padding:10px 0}
+.daytab{min-width:83px;border:1px solid #d5deea;border-radius:11px;padding:12px 8px;background:#edf1f6;color:#314760}
+.daytab.active{background:var(--navy);color:white}
+.item{border:1px solid var(--line);border-radius:14px;padding:14px;margin:11px 0;background:white}
+.item.done{background:#f0f7f2;border-color:#b9dbc7}
+.itemtop{display:flex;align-items:flex-start;gap:12px}
+.check{width:27px;height:27px;accent-color:var(--green);flex:none;margin:2px 0}
+.itemtitle{font-weight:800;font-size:18px;line-height:1.35;flex:1}
+.time{font-size:15px;color:var(--blue);font-weight:800;white-space:nowrap}
+.addr{font-size:15px;color:#43556a;margin:8px 0 4px 39px}
+.note{font-size:15px;color:var(--muted);margin-left:39px}
+.actions{display:flex;gap:8px;margin:12px 0 0 39px;flex-wrap:wrap}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.formbuttons{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.formbuttons button{flex:1}
+#map{height:320px;border-radius:14px;overflow:hidden;background:#e9eef3}
+.hint{font-size:14px;color:var(--muted);line-height:1.5}
+.notice{background:#fff8e9;border:1px solid #ead9ad;border-radius:12px;padding:13px;font-size:15px;color:#674b1b;line-height:1.5}
 .suggestwrap{position:relative}
-.suggestions{position:absolute;z-index:1000;top:0;left:0;right:0;background:white;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px #0002;max-height:220px;overflow:auto}
-.suggestions button{display:block;width:100%;text-align:left;background:white;border-radius:0;border-bottom:1px solid #edf0f3;padding:11px;line-height:1.35}
+.suggestions{position:absolute;z-index:1000;top:100%;left:0;right:0;background:white;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px #0002;max-height:240px;overflow:auto}
+.suggestions button{display:block;width:100%;text-align:left;background:white;border-radius:0;border-bottom:1px solid #edf0f3;padding:13px;font-size:15px}
 .hidden{display:none!important}
-footer{text-align:center;color:#7c8999;font-size:11px;padding:10px}
-@media(max-width:390px){.stats{gap:5px}.stat{padding:8px}.stat b{font-size:17px}#map{height:290px}}
+.info-row{padding:12px 0;border-bottom:1px solid var(--line)}
+.info-row:last-child{border-bottom:0}
+.info-label{font-size:14px;color:var(--muted);font-weight:700}
+.info-value{font-size:17px;white-space:pre-wrap;overflow-wrap:anywhere}
+footer{text-align:center;color:#65758a;font-size:13px;padding:12px}
+@media(max-width:430px){.row{gap:7px}.stats{gap:5px}.stat{padding:8px 4px}.stat b{font-size:20px}.stat span{font-size:11px}#map{height:280px}.actions{margin-left:0}.addr,.note{margin-left:0}.time{font-size:14px}}
 </style>
 </head>
 <body>
 <header>
  <div class="topline">DIN PERSONLIGA RESEPLANERARE</div>
  <h1>Resor & äventyr ✈️</h1>
- <p>Alla era resor, dagar, stopp och kartor – på ett ställe.</p>
+ <p>Planera, hitta och håll ordning på dina resor.</p>
  <div class="stats">
   <div class="stat"><b id="tripCount">1</b><span>Resor</span></div>
-  <div class="stat"><b id="totalCount">15</b><span>Planerade stopp</span></div>
-  <div class="stat"><b id="doneCount">0</b><span>Avklarade</span></div>
+  <div class="stat"><b id="totalCount">15</b><span>Stopp</span></div>
+  <div class="stat"><b id="doneCount">0</b><span>Klart</span></div>
  </div>
 </header>
 <main>
 <section class="card">
  <div class="section-title"><span>🧳 Mina resor</span><button class="primary" id="newTrip">＋ Ny resa</button></div>
- <label for="tripSelect">Välj resa</label><select id="tripSelect"></select>
- <div class="actions" style="margin-left:0">
-  <button class="secondary small" id="renameTrip">Byt namn</button>
-  <button class="danger small" id="deleteTrip">Ta bort resa</button>
+ <p class="hint">Välj vilken resa du vill planera eller titta på.</p>
+ <label for="tripSelect">Vald resa</label><select id="tripSelect"></select>
+ <div class="formbuttons">
+  <button class="secondary" id="renameTrip">Byt namn</button>
+  <button class="danger" id="deleteTrip">Ta bort resa</button>
  </div>
 </section>
+
 <section class="card">
- <div class="section-title"><span>📅 Resans datum</span><span id="dateSummary" class="hint"></span></div>
+ <div class="section-title">📝 Resans uppgifter</div>
+ <p class="hint">Här samlar du viktig information om resan. Tryck på Ändra när du vill uppdatera något.</p>
+ <div id="tripDetails"></div>
+ <button class="primary" id="editDetails" style="width:100%;margin-top:12px">✏️ Ändra resans uppgifter</button>
+ <form id="detailsForm" hidden>
+  <label>Resans namn</label><input id="detailName" required>
+  <label>Hotell och boende</label><textarea id="detailHotel" placeholder="Hotellnamn, adress, telefon och bokningsnummer"></textarea>
+  <label>Flygresa dit</label><textarea id="detailOutbound" placeholder="Flygbolag, flightnummer, datum, tid och flygplats"></textarea>
+  <label>Hemresa</label><textarea id="detailReturn" placeholder="Flygbolag, flightnummer, datum, tid och flygplats"></textarea>
+  <label>Evenemang och biljetter</label><textarea id="detailEvents" placeholder="Konsert, föreställning, biljetter och tider"></textarea>
+  <label>Övrig viktig information</label><textarea id="detailOther" placeholder="Försäkring, bokningar, kontaktuppgifter eller annat"></textarea>
+  <div class="formbuttons">
+   <button class="primary" type="submit">Spara uppgifter</button>
+   <button class="secondary" type="button" id="cancelDetails">Avbryt</button>
+  </div>
+ </form>
+</section>
+
+<section class="card">
+ <div class="section-title">📅 Resans dagar</div>
+ <p class="hint">Välj första och sista dagen. Appen skapar dagarna automatiskt.</p>
  <div class="row">
   <div><label>Första dag</label><input type="date" id="startDate"></div>
   <div><label>Sista dag</label><input type="date" id="endDate"></div>
  </div>
  <div class="days" id="dayTabs"></div>
- <p class="hint">Välj valfria datum. Ändra start- eller slutdatum för att lägga till fler resdagar.</p>
+ <p class="hint" id="dateSummary"></p>
 </section>
+
 <section class="card">
  <div class="section-title"><span id="scheduleTitle">Dagens plan</span><span id="dayCount" class="hint"></span></div>
- <p id="dayIntro" class="hint">Dagens aktiviteter och besöksmål.</p>
+ <p class="hint">Här ser du dagens aktiviteter i tidsordning. Kryssa i rutan när ett stopp är avklarat.</p>
  <div id="schedule"></div>
- <button class="secondary" id="addToggle" style="width:100%;margin-top:10px">＋ Lägg till ett stopp</button>
+ <button class="primary" id="addToggle" style="width:100%;margin-top:12px">＋ Lägg till ett stopp</button>
  <form id="stopForm" hidden>
-  <label>Platsens namn</label><input id="name" required placeholder="Exempel: Camden Market">
-  <label>Sök plats eller adress – välj ett förslag</label>
+  <h3>➕ Lägg till eller ändra stopp</h3>
+  <label>Vad heter platsen?</label><input id="name" required placeholder="Exempel: Camden Market">
+  <label>Adress eller plats</label>
   <div class="suggestwrap">
-   <input id="address" required autocomplete="off" placeholder="Börja skriva t.ex. Camden Market">
+   <input id="address" required autocomplete="off" placeholder="Skriv en adress eller plats">
    <div id="suggestions" class="suggestions hidden"></div>
   </div>
-  <p class="hint">Adressförslag hämtas från OpenStreetMap. Välj rätt förslag så fylls kartpositionen i automatiskt.</p>
+  <p class="hint">Välj ett adressförslag så hittar appen platsen på kartan.</p>
   <div class="formgrid">
    <div><label>Tid</label><input id="time" type="time" value="10:00"></div>
    <div><label>Datum</label><input id="stopDate" type="date"></div>
   </div>
-  <label>Anteckning</label><input id="note" placeholder="Vad vill ni göra här?">
+  <label>Anteckning</label><textarea id="note" placeholder="Vad ska ni göra här?"></textarea>
   <div class="formbuttons">
    <button class="primary" type="submit">Spara stopp</button>
    <button class="secondary" type="button" id="cancelForm">Avbryt</button>
   </div>
  </form>
 </section>
+
 <section class="card">
- <div class="section-title"><span>🗺️ Dagens karta</span><button class="secondary small" id="fitMap">Visa alla</button></div>
+ <div class="section-title"><span>🗺️ Karta för dagen</span><button class="secondary small" id="fitMap">Visa alla</button></div>
+ <p class="hint">Här ser du dagens platser på kartan.</p>
  <div id="map"></div>
- <p class="mapnote">Kartan visar dagens stopp som inte är avklarade. Markera ett stopp som klart för att dölja det från kartan. Den streckade linjen är en översikt, inte en exakt väg.</p>
+ <p class="hint">Markera ett stopp som klart för att dölja det från kartan.</p>
  <button class="primary" id="googleRoute" style="width:100%;margin-top:10px">Öppna dagens rutt i Google Maps ↗</button>
 </section>
-<section class="card">
- <div class="section-title">📍 Fasta reseuppgifter – London</div>
- <p class="hint">Dessa uppgifter hör till Londonresan.</p>
- <p><b>🏨 DoubleTree by Hilton London – Chelsea</b><br><small>Imperial Road, Imperial Wharf, London SW6 2GA</small></p>
- <p><b>🎤 O2 Academy Brixton</b><br><small>Söndag 8/11 · Konsert 18:30</small></p>
- <p><b>✈️ Gatwick Airport</b><br><small>Hemresa tisdag 10/11 · Flyg 17:30</small></p>
-</section>
+
 <section class="card">
  <div class="section-title">💾 Säkerhetskopia</div>
- <p class="hint">Exportera alla resor till en fil och importera den på en annan enhet. Automatisk sparning gäller den här enheten.</p>
+ <p class="hint">Spara en kopia av alla dina resor. Du kan använda filen för att flytta information till en annan enhet.</p>
  <div class="formbuttons">
-  <button class="primary" id="exportBtn" style="flex:1">Exportera backup</button>
-  <button class="secondary" id="importBtn" style="flex:1">Importera backup</button>
+  <button class="primary" id="exportBtn">Spara säkerhetskopia</button>
+  <button class="secondary" id="importBtn">Hämta säkerhetskopia</button>
   <input id="importFile" type="file" accept="application/json" hidden>
  </div>
- <p class="notice" style="margin-top:12px">Det finns ännu ingen automatisk synkronisering mellan två telefoner. Använd säkerhetskopian för att flytta ändringar.</p>
+ <p class="notice" style="margin-top:13px">Appen sparar automatiskt på den här enheten. För att dela resorna med en annan telefon behöver du använda säkerhetskopian.</p>
 </section>
 <footer>Reseplaneraren · Kartdata © OpenStreetMap-bidragsgivare</footer>
 </main>
@@ -162,44 +187,45 @@ const initial=[
 ["Covent Garden","Covent Garden, London WC2E","16:30","Shopping, fika och middag",51.5116571,-0.1240436,"2026-11-09"]
 ];
 const dayNames=["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"];
-let db,tripId,selectedDate,editingId=null,chosenPlace=null,map,layer,line,searchTimer=0;
 const $=id=>document.getElementById(id);
-const uid=()=> "s"+Date.now()+Math.random().toString(16).slice(2);
+const uid=()=>"s"+Date.now()+Math.random().toString(16).slice(2);
+let db,tripId,selectedDate,editingId=null,chosenPlace=null,map,layer,line,searchTimer=0;
 function iso(d){return d.toISOString().slice(0,10)}
 function addDays(s,n){let d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)}
 function fmt(s){return new Date(s+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"long",year:"numeric"})}
 function short(s){let d=new Date(s+"T12:00:00");return dayNames[d.getDay()].slice(0,3)+" "+d.getDate()+"/"+(d.getMonth()+1)}
-function makeTrip(name,start,end,items=[],done=[]){return{id:uid(),name,start,end,items,done}}
+function makeTrip(name,start,end,items=[],done=[],details={}){return{id:uid(),name,start,end,items,done,details}}
 function trip(){return db.trips.find(t=>t.id===tripId)}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));stats()}
 function dates(t){let a=[];for(let d=t.start;d<=t.end&&a.length<400;d=addDays(d,1))a.push(d);return a}
-
 function load(){
  try{
   let v=JSON.parse(localStorage.getItem(KEY));
-  if(v?.trips?.length){db=v;tripId=db.trips[0].id;return}
+  if(v?.trips?.length){
+   db=v;db.trips.forEach(t=>{t.details=t.details||{};t.items=t.items||[];t.done=t.done||[]});
+   tripId=db.trips[0].id;return;
+  }
  }catch(e){}
  let items=[],done=[];
  try{
   let old=JSON.parse(localStorage.getItem(OLD));
   if(old&&Array.isArray(old.items)){
    items=old.items.map(x=>({
-    id:x.id||uid(),
-    name:x.name||"Nytt stopp",
-    address:x.address||"",
-    time:x.time||"",
-    note:x.note||"",
-    lat:x.lat??null,
-    lon:x.lon??null,
+    id:x.id||uid(),name:x.name||"Nytt stopp",address:x.address||"",
+    time:x.time||"",note:x.note||"",lat:x.lat??null,lon:x.lon??null,
     date:x.date||({"Fredag":"2026-11-06","Lördag":"2026-11-07","Söndag":"2026-11-08","Måndag":"2026-11-09","Tisdag":"2026-11-10"}[x.day]||"2026-11-07")
    }));
    done=Array.isArray(old.done)?old.done.slice():[];
   }
  }catch(e){}
- if(!items.length){
-  items=initial.map(x=>({id:uid(),name:x[0],address:x[1],time:x[2],note:x[3],lat:x[4],lon:x[5],date:x[6]}));
- }
- let london=makeTrip("London · 6–10 november 2026","2026-11-06","2026-11-10",items,done);
+ if(!items.length)items=initial.map(x=>({id:uid(),name:x[0],address:x[1],time:x[2],note:x[3],lat:x[4],lon:x[5],date:x[6]}));
+ let details={
+  hotel:"DoubleTree by Hilton London – Chelsea\nImperial Road, Imperial Wharf, London SW6 2GA",
+  outbound:"Fredag 6 november 2026\nFlyg från Arlanda cirka 14:30 till Gatwick.",
+  return:"Tisdag 10 november 2026\nFlyg från Gatwick cirka 17:30.",
+  events:"Söndag 8 november\nO2 Academy Brixton\nKonsertstart 18:30."
+ };
+ let london=makeTrip("London · 6–10 november 2026","2026-11-06","2026-11-10",items,done,details);
  db={trips:[london]};tripId=london.id;save();
 }
 function stats(){
@@ -213,8 +239,21 @@ function renderTrips(){
  $("tripSelect").innerHTML=db.trips.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
  $("tripSelect").value=tripId;
 }
+function renderDetails(){
+ let d=trip().details||{};
+ $("tripDetails").innerHTML=[
+  ["Boende / hotell",d.hotel],["Flygresa dit",d.outbound],["Hemresa",d.return],
+  ["Evenemang och biljetter",d.events],["Övrig information",d.other]
+ ].map(([label,value])=>`<div class="info-row"><div class="info-label">${label}</div><div class="info-value">${value?esc(value):"Inte ifyllt ännu"}</div></div>`).join("");
+ $("detailName").value=trip().name;
+ $("detailHotel").value=d.hotel||"";
+ $("detailOutbound").value=d.outbound||"";
+ $("detailReturn").value=d.return||"";
+ $("detailEvents").value=d.events||"";
+ $("detailOther").value=d.other||"";
+}
 function render(){
- let t=trip();renderTrips();
+ let t=trip();renderTrips();renderDetails();
  $("startDate").value=t.start;$("endDate").value=t.end;
  $("dateSummary").textContent=fmt(t.start)+" – "+fmt(t.end);
  $("dayTabs").innerHTML=dates(t).map(d=>`<button class="daytab ${d===selectedDate?"active":""}" data-date="${d}">${short(d)}</button>`).join("");
@@ -224,24 +263,22 @@ function render(){
  $("schedule").innerHTML=items.map(x=>`
  <div class="item ${t.done.includes(x.id)?"done":""}">
   <div class="itemtop">
-   <input class="check" type="checkbox" ${t.done.includes(x.id)?"checked":""} onchange="toggle('${x.id}',this.checked)">
+   <input class="check" type="checkbox" aria-label="Markera ${esc(x.name)} som klart" ${t.done.includes(x.id)?"checked":""} onchange="toggle('${x.id}',this.checked)">
    <div class="itemtitle">${esc(x.name)}</div><div class="time">${esc(x.time||"")}</div>
   </div>
   <div class="addr">${esc(x.address)}</div>
   ${x.note?`<div class="note">${esc(x.note)}</div>`:""}
   <div class="actions">
    <button class="secondary small" onclick="navigate('${x.id}')">📍 Hitta hit</button>
-   <button class="secondary small" onclick="edit('${x.id}')">Redigera</button>
+   <button class="secondary small" onclick="edit('${x.id}')">✏️ Ändra</button>
    <button class="danger small" onclick="removeStop('${x.id}')">Ta bort</button>
   </div>
- </div>`).join("")||'<p class="hint">Inga stopp den här dagen ännu. Lägg till ett nedan.</p>';
+ </div>`).join("")||'<p class="hint">Inga stopp den här dagen ännu. Tryck på Lägg till ett stopp om du vill lägga till något.</p>';
  $("stopDate").value=selectedDate;drawMap();stats();
 }
-function toggle(id,v){
- let t=trip();t.done=v?[...t.done,id]:t.done.filter(x=>x!==id);save();render();
-}
+function toggle(id,v){let t=trip();t.done=v?[...t.done,id]:t.done.filter(x=>x!==id);save();render()}
 function removeStop(id){
- if(!confirm("Ta bort stoppet?"))return;
+ if(!confirm("Vill du ta bort det här stoppet?"))return;
  let t=trip();t.items=t.items.filter(x=>x.id!==id);t.done=t.done.filter(x=>x!==id);save();render();
 }
 function navigate(id){
@@ -257,61 +294,45 @@ function drawMap(all=false){
  layer.clearLayers();if(line)map.removeLayer(line);
  let t=trip(),items=t.items.filter(x=>(all||x.date===selectedDate)&&!t.done.includes(x.id)&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));
  let pts=[];
- items.forEach(x=>{
-  let p=[Number(x.lat),Number(x.lon)];pts.push(p);
-  L.marker(p).addTo(layer).bindPopup("<b>"+esc(x.name)+"</b><br>"+esc(x.address));
- });
+ items.forEach(x=>{let p=[Number(x.lat),Number(x.lon)];pts.push(p);L.marker(p).addTo(layer).bindPopup("<b>"+esc(x.name)+"</b><br>"+esc(x.address))});
  if(pts.length>1)line=L.polyline(pts,{color:"#24558a",weight:4,dashArray:"7 7"}).addTo(map);
  if(pts.length)map.fitBounds(L.latLngBounds(pts).pad(.18));else map.setView([51.51,-.13],11);
  setTimeout(()=>map.invalidateSize(),100);
 }
 function clearForm(){
- editingId=null;chosenPlace=null;$("stopForm").reset();
- $("stopDate").value=selectedDate;$("time").value="10:00";
- $("suggestions").classList.add("hidden");
- $("addToggle").textContent="＋ Lägg till ett stopp";$("stopForm").hidden=true;
+ editingId=null;chosenPlace=null;$("stopForm").reset();$("stopDate").value=selectedDate;$("time").value="10:00";
+ $("suggestions").classList.add("hidden");$("addToggle").textContent="＋ Lägg till ett stopp";$("stopForm").hidden=true;
 }
 function edit(id){
  let x=trip().items.find(a=>a.id===id);editingId=id;chosenPlace=null;
- $("name").value=x.name;$("address").value=x.address;
- $("time").value=x.time||"10:00";$("stopDate").value=x.date;$("note").value=x.note||"";
- $("stopForm").hidden=false;$("addToggle").textContent="Redigera stopp";
- $("stopForm").scrollIntoView({behavior:"smooth",block:"center"});
+ $("name").value=x.name;$("address").value=x.address;$("time").value=x.time||"10:00";$("stopDate").value=x.date;$("note").value=x.note||"";
+ $("stopForm").hidden=false;$("addToggle").textContent="Stäng formuläret";$("stopForm").scrollIntoView({behavior:"smooth",block:"center"});
 }
 $("stopForm").addEventListener("submit",e=>{
  e.preventDefault();
- let t=trip(),obj={
-  name:$("name").value.trim(),address:$("address").value.trim(),
-  time:$("time").value,date:$("stopDate").value,note:$("note").value.trim()
- };
+ let t=trip(),obj={name:$("name").value.trim(),address:$("address").value.trim(),time:$("time").value,date:$("stopDate").value,note:$("note").value.trim()};
  if(!obj.name||!obj.address||!obj.date)return alert("Fyll i namn, adress och datum.");
  if(editingId){
-  let x=t.items.find(a=>a.id===editingId);
-  Object.assign(x,obj);
+  let x=t.items.find(a=>a.id===editingId),oldAddress=x.address;Object.assign(x,obj);
   if(chosenPlace){x.lat=chosenPlace.lat;x.lon=chosenPlace.lon}
-  else if(x.address!==obj.address){x.lat=null;x.lon=null}
- }else{
-  t.items.push({id:uid(),...obj,lat:chosenPlace?.lat??null,lon:chosenPlace?.lon??null});
- }
+  else if(oldAddress!==obj.address){x.lat=null;x.lon=null}
+ }else t.items.push({id:uid(),...obj,lat:chosenPlace?.lat??null,lon:chosenPlace?.lon??null});
  selectedDate=obj.date;save();clearForm();render();
 });
 $("addToggle").onclick=()=>{
  if(!$("stopForm").hidden){clearForm();return}
- $("stopForm").hidden=false;$("stopDate").value=selectedDate;
- $("addToggle").textContent="Stäng formuläret";
+ $("stopForm").hidden=false;$("stopDate").value=selectedDate;$("addToggle").textContent="Stäng formuläret";
+ $("stopForm").scrollIntoView({behavior:"smooth",block:"center"});
 };
 $("cancelForm").onclick=clearForm;
 $("suggestions").addEventListener("click",e=>{
  let b=e.target.closest("button[data-index]");if(!b)return;
- let p=window.placeResults[Number(b.dataset.index)];
- $("address").value=p.display_name;
+ let p=window.placeResults[Number(b.dataset.index)];$("address").value=p.display_name;
  if(!$("name").value.trim())$("name").value=p.name||p.display_name.split(",")[0];
- chosenPlace={lat:Number(p.lat),lon:Number(p.lon)};
- $("suggestions").classList.add("hidden");
+ chosenPlace={lat:Number(p.lat),lon:Number(p.lon)};$("suggestions").classList.add("hidden");
 });
 $("address").addEventListener("input",()=>{
- clearTimeout(searchTimer);
- let q=$("address").value.trim(),box=$("suggestions");chosenPlace=null;
+ clearTimeout(searchTimer);let q=$("address").value.trim(),box=$("suggestions");chosenPlace=null;
  if(q.length<3){box.classList.add("hidden");return}
  searchTimer=setTimeout(async()=>{
   try{
@@ -320,11 +341,10 @@ $("address").addEventListener("input",()=>{
    box.innerHTML=a.map((p,i)=>`<button type="button" data-index="${i}">${esc(p.display_name)}</button>`).join("");
    box.classList.toggle("hidden",!a.length);
   }catch(e){box.classList.add("hidden")}
- },550);
+ },650);
 });
 $("dayTabs").onclick=e=>{
- let b=e.target.closest("[data-date]");
- if(b){selectedDate=b.dataset.date;clearForm();render()}
+ let b=e.target.closest("[data-date]");if(b){selectedDate=b.dataset.date;clearForm();render()}
 };
 $("tripSelect").onchange=e=>{tripId=e.target.value;selectedDate=trip().start;clearForm();render()};
 $("startDate").onchange=()=>{
@@ -347,33 +367,51 @@ $("newTrip").onclick=()=>{
 };
 $("renameTrip").onclick=()=>{
  let n=prompt("Nytt namn på resan:",trip().name);
- if(n?.trim()){trip().name=n.trim();save();renderTrips()}
+ if(n?.trim()){trip().name=n.trim();save();renderTrips();renderDetails()}
 };
 $("deleteTrip").onclick=()=>{
  if(db.trips.length<2)return alert("Du måste ha minst en resa kvar.");
- if(!confirm("Ta bort resan och alla dess stopp?"))return;
+ if(!confirm("Ta bort resan och alla dess uppgifter och stopp?"))return;
  db.trips=db.trips.filter(t=>t.id!==tripId);tripId=db.trips[0].id;selectedDate=trip().start;save();render();
+};
+$("editDetails").onclick=()=>{
+ $("detailsForm").hidden=false;$("detailsForm").scrollIntoView({behavior:"smooth",block:"center"});
+};
+$("cancelDetails").onclick=()=>{$("detailsForm").hidden=true;renderDetails()};
+$("detailsForm").onsubmit=e=>{
+ e.preventDefault();let t=trip();
+ t.name=$("detailName").value.trim()||"Min resa";
+ t.details={
+  hotel:$("detailHotel").value.trim(),
+  outbound:$("detailOutbound").value.trim(),
+  return:$("detailReturn").value.trim(),
+  events:$("detailEvents").value.trim(),
+  other:$("detailOther").value.trim()
+ };
+ save();$("detailsForm").hidden=true;render();
 };
 $("fitMap").onclick=()=>drawMap(true);
 $("googleRoute").onclick=()=>{
  let a=trip().items.filter(x=>x.date===selectedDate&&!trip().done.includes(x.id)).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
- if(!a.length)return alert("Inga ej avklarade stopp idag.");
+ if(!a.length)return alert("Det finns inga stopp kvar på den här dagen.");
  let url="https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(a[0].address)+"&destination="+encodeURIComponent(a[a.length-1].address)+"&travelmode=transit";
  if(a.length>2)url+="&waypoints="+encodeURIComponent(a.slice(1,-1).map(x=>x.address).join("|"));
  window.open(url,"_blank");
 };
 $("exportBtn").onclick=()=>{
  let blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
- let u=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=u;a.download="mina-resor-backup.json";a.click();URL.revokeObjectURL(u);
+ let u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="mina-resor-backup.json";a.click();
+ setTimeout(()=>URL.revokeObjectURL(u),1000);
 };
 $("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=async e=>{
  try{
+  if(!e.target.files[0])return;
   let d=JSON.parse(await e.target.files[0].text());
-  if(!d.trips?.length)throw 0;
+  if(!d.trips?.length)throw new Error("Fel format");
   if(!confirm("Importera och ersätta resorna på den här enheten?"))return;
-  db=d;tripId=db.trips[0].id;selectedDate=trip().start;save();render();
+  db=d;db.trips.forEach(t=>{t.details=t.details||{};t.items=t.items||[];t.done=t.done||[]});
+  tripId=db.trips[0].id;selectedDate=trip().start;save();render();
  }catch(err){alert("Kunde inte läsa säkerhetskopian.")}
  e.target.value="";
 };
