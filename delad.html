@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#17365d">
+<title>Delad reseplanerare</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#17365d;--blue:#24558a;--ink:#172536;--muted:#536579;--bg:#f1f4f8;--line:#d5deea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:22px 18px}
+h1{font-size:27px;margin:4px 0}
+header p{margin:0;color:#e4edf7}
+main{max-width:780px;margin:auto;padding:14px 13px 40px}
+.card{background:white;border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #152c4510}
+.title{font-size:19px;font-weight:800;margin:0 0 12px}
+.hint{font-size:14px;color:var(--muted)}
+label{display:block;font-size:14px;font-weight:750;margin:12px 0 5px}
+input,select,textarea{width:100%;border:1px solid #aebdce;border-radius:10px;padding:12px;font:inherit;background:white;color:var(--ink)}
+textarea{min-height:75px}
+button{cursor:pointer;border:0;border-radius:10px;padding:12px 14px;font-weight:750;font-size:15px}
+.primary{background:var(--navy);color:white}
+.secondary{background:#eaf0f6;color:#203e5d}
+.danger{background:#fff0ef;color:#963a34}
+.row{display:flex;gap:9px}
+.row>*{flex:1;min-width:0}
+[hidden]{display:none!important}
+.days{display:flex;gap:7px;overflow:auto;padding:8px 0}
+.day{min-width:82px;background:#edf1f6;color:#314760}
+.day.active{background:var(--navy);color:white}
+.item{border:1px solid var(--line);border-radius:13px;padding:13px;margin:10px 0;background:white}
+.item.done{background:#f0f7f2}
+.itemtop{display:flex;gap:10px;align-items:center}
+.itemtop input{width:24px;height:24px}
+.itemname{font-weight:800;flex:1}
+.time{color:var(--blue);font-weight:800}
+.muted{color:var(--muted);font-size:14px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+#map{height:280px;border-radius:13px}
+.notice{background:#fff8e9;border:1px solid #ead9ad;border-radius:10px;padding:12px;color:#674b1b;font-size:14px}
+footer{text-align:center;color:#65758a;font-size:12px;padding:10px}
+.status{font-size:14px;color:#e4edf7}
+@media(max-width:430px){.row{gap:6px}#map{height:250px}}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="status" id="status">Inte inloggad</div>
+ <h1>Resor & äventyr ✈️</h1>
+ <p>Din privata, delade reseplanerare.</p>
+</header>
+
+<main>
+
+<section class="card" id="authCard">
+ <h2 class="title">🔐 Logga in eller skapa konto</h2>
+ <p class="hint">Använd din e-postadress och ett lösenord. Alla som bjuds in behöver också logga in.</p>
+ <label>E-postadress</label>
+ <input id="email" type="email" autocomplete="email" placeholder="namn@exempel.se">
+ <label>Lösenord</label>
+ <input id="password" type="password" autocomplete="current-password" placeholder="Minst 6 tecken">
+ <div class="row" style="margin-top:13px">
+  <button class="primary" id="login">Logga in</button>
+  <button class="secondary" id="signup">Skapa konto</button>
+ </div>
+ <p class="hint" id="authMessage"></p>
+</section>
+
+<section class="card" id="appCard" hidden>
+ <div class="row" style="align-items:center">
+  <h2 class="title" style="flex:1">🧳 Mina resor</h2>
+  <button class="secondary" id="logout">Logga ut</button>
+ </div>
+ <label>Vald resa</label>
+ <select id="tripSelect"></select>
+ <div class="row" style="margin-top:9px">
+  <button class="primary" id="newTrip">＋ Ny resa</button>
+  <button class="secondary" id="invite">🔗 Bjud in</button>
+ </div>
+ <p class="hint" id="memberInfo"></p>
+ <div id="inviteBox" hidden>
+  <p class="notice">Skicka länken till personen du vill bjuda in. Personen måste logga in för att gå med.</p>
+  <input id="inviteUrl" readonly>
+  <button class="secondary" id="copyInvite" style="margin-top:8px">Kopiera inbjudningslänk</button>
+ </div>
+</section>
+
+<section class="card" id="tripCard" hidden>
+ <h2 class="title">📝 Resans uppgifter</h2>
+ <label>Resans namn</label>
+ <input id="tripName">
+ <div class="row">
+  <div><label>Första dag</label><input type="date" id="startDate"></div>
+  <div><label>Sista dag</label><input type="date" id="endDate"></div>
+ </div>
+ <label>Hotell och boende</label><textarea id="hotel"></textarea>
+ <label>Flygresa dit</label><textarea id="outbound"></textarea>
+ <label>Hemresa</label><textarea id="return"></textarea>
+ <label>Evenemang och biljetter</label><textarea id="events"></textarea>
+ <label>Övrig information</label><textarea id="other"></textarea>
+ <button class="primary" id="saveDetails" style="width:100%;margin-top:12px">Spara resans uppgifter</button>
+</section>
+
+<section class="card" id="daysCard" hidden>
+ <h2 class="title">📅 Resans dagar</h2>
+ <div class="days" id="dayTabs"></div>
+ <p class="hint" id="dateSummary"></p>
+</section>
+
+<section class="card" id="stopsCard" hidden>
+ <h2 class="title">Dagens plan</h2>
+ <div id="schedule"></div>
+ <button class="primary" id="showStopForm" style="width:100%;margin-top:10px">＋ Lägg till ett stopp</button>
+ <form id="stopForm" hidden>
+  <h3>Lägg till eller ändra stopp</h3>
+  <input type="hidden" id="stopId">
+  <label>Vad heter platsen?</label>
+  <input id="stopName" required>
+  <label>Adress eller plats</label>
+  <input id="address" required>
+  <div class="row">
+   <div><label>Tid</label><input type="time" id="stopTime" value="10:00"></div>
+   <div><label>Datum</label><input type="date" id="stopDate" required></div>
+  </div>
+  <label>Anteckning</label>
+  <textarea id="note"></textarea>
+  <div class="row" style="margin-top:10px">
+   <button class="primary" type="submit">Spara stopp</button>
+   <button class="secondary" type="button" id="cancelStop">Avbryt</button>
+  </div>
+ </form>
+</section>
+
+<section class="card" id="mapCard" hidden>
+ <h2 class="title">🗺️ Karta för dagen</h2>
+ <div id="map"></div>
+ <button class="secondary" id="googleRoute" style="width:100%;margin-top:10px">Öppna dagens rutt i Google Maps ↗</button>
+</section>
+
+<section class="card" id="backupCard" hidden>
+ <h2 class="title">💾 Importera dina gamla resor</h2>
+ <p class="hint">Välj JSON-säkerhetskopian från din gamla reseplanerare. Resorna läggs till på ditt konto utan att ta bort något.</p>
+ <input type="file" id="backupFile" accept="application/json">
+ <button class="primary" id="importBackup" style="margin-top:9px">Importera säkerhetskopia</button>
+ <p class="notice" style="margin-top:12px">Endast inloggade medlemmar som bjudits in kan läsa och ändra resan.</p>
+</section>
+
+<footer>Reseplaneraren · Kartdata © OpenStreetMap-bidragsgivare</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const SUPABASE_URL="https://naufmtxjgrekllwwbpmh.supabase.co";
+const SUPABASE_KEY="sb_publishable_yCxG1ZpI0tfKF5zUSxXAZQ_Lkx4jGqO";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+const $=id=>document.getElementById(id);
+let user=null,trips=[],current=null,selectedDate=null,stops=[],details={},map=null,markers=null,channel=null;
+
+const dayNames=["sön","mån","tis","ons","tors","fre","lör"];
+const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=d=>d.toISOString().slice(0,10);
+const fmt=s=>new Date(s+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"long",year:"numeric"});
+const short=s=>{let d=new Date(s+"T12:00:00");return dayNames[d.getDay()]+" "+d.getDate()+"/"+(d.getMonth()+1)};
+function say(id,msg){$(id).textContent=msg}
+
+function dates(){
+ let a=[],d=current?.start_date;
+ while(d&&d<=current.end_date&&a.length<200){
+  a.push(d);
+  let x=new Date(d+"T12:00:00");
+  x.setDate(x.getDate()+1);
+  d=iso(x);
+ }
+ return a;
+}
+
+function showApp(on){
+ $("authCard").hidden=on;
+ $("appCard").hidden=!on;
+ ["tripCard","daysCard","stopsCard","mapCard","backupCard"].forEach(id=>$(id).hidden=!on);
+}
+
+async function auth(mode){
+ say("authMessage","Arbetar…");
+ let email=$("email").value.trim(),password=$("password").value;
+ if(!email||!password)return say("authMessage","Fyll i e-postadress och lösenord.");
+ try{
+  let r=mode==="signup"
+   ?await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}})
+   :await sb.auth.signInWithPassword({email,password});
+  if(r.error)throw r.error;
+  if(mode==="signup"&&!r.data.session){
+   say("authMessage","Kontot är skapat. Bekräfta e-postadressen och logga sedan in.");
+   return;
+  }
+  say("authMessage","Klart!");
+  await boot();
+ }catch(e){say("authMessage","Det gick inte: "+e.message)}
+}
+
+$("login").onclick=()=>auth("login");
+$("signup").onclick=()=>auth("signup");
+$("logout").onclick=async()=>{await sb.auth.signOut();location.reload()};
+
+async function boot(){
+ let r=await sb.auth.getUser();
+ user=r.data.user;
+ if(!user){
+  showApp(false);
+  $("status").textContent="Inte inloggad";
+  return;
+ }
+ showApp(true);
+ $("status").textContent="Inloggad: "+user.email;
+ await acceptInviteFromUrl();
+ await loadTrips();
+}
+
+async function acceptInviteFromUrl(){
+ let token=new URLSearchParams(location.search).get("invite");
+ if(!token)return;
+ let r=await sb.rpc("accept_trip_invitation",{p_token:token});
+ if(r.error)alert("Inbjudan kunde inte användas: "+r.error.message);
+ else alert("Du har gått med i resan!");
+ history.replaceState({}, "", location.pathname);
+}
+
+async function loadTrips(){
+ try{
+  let m=await sb.from("trip_members").select("trip_id,role").eq("user_id",user.id);
+  if(m.error)throw m.error;
+  if(!m.data.length){
+   trips=[];
+   $("tripSelect").innerHTML="";
+   $("memberInfo").textContent="Du har ännu inga resor. Skapa en ny resa eller öppna en inbjudningslänk.";
+   current=null;
+   ["tripCard","daysCard","stopsCard","mapCard"].forEach(id=>$(id).hidden=true);
+   return;
+  }
+  let ids=m.data.map(x=>x.trip_id);
+  let t=await sb.from("trips").select("id,name,start_date,end_date,owner_id").in("id",ids);
+  if(t.error)throw t.error;
+  trips=t.data;
+  let roles=Object.fromEntries(m.data.map(x=>[x.trip_id,x.role]));
+  trips.forEach(x=>x.role=roles[x.id]);
+  $("tripSelect").innerHTML=trips.map(x=>`<option value="${x.id}">${safe(x.name)}</option>`).join("");
+  if(!current||!trips.some(x=>x.id===current.id))current=trips[0];
+  $("tripSelect").value=current.id;
+  await loadTrip();
+ }catch(e){alert("Kunde inte läsa resorna: "+e.message)}
+}
+
+$("tripSelect").onchange=async e=>{
+ current=trips.find(t=>t.id===e.target.value);
+ selectedDate=current.start_date;
+ await loadTrip();
+};
+
+async function loadTrip(){
+ if(!current)return;
+ selectedDate=selectedDate||current.start_date;
+ let [d,s,m]=await Promise.all([
+  sb.from("trip_details").select("details").eq("trip_id",current.id).maybeSingle(),
+  sb.from("trip_stops").select("*").eq("trip_id",current.id).order("stop_date").order("stop_time"),
+  sb.from("trip_members").select("user_id,role").eq("trip_id",current.id)
+ ]);
+ if(d.error||s.error||m.error){
+  alert("Kunde inte läsa resan. Kontrollera databasens behörigheter.");
+  return;
+ }
+ details=d.data?.details||{};
+ stops=s.data||[];
+ $("memberInfo").textContent=m.data.length+" medlem(mar), din roll: "+(current.role||"medlem");
+ $("tripName").value=current.name;
+ $("startDate").value=current.start_date||"";
+ $("endDate").value=current.end_date||"";
+ ["hotel","outbound","return","events","other"].forEach(k=>$(k).value=details[k]||"");
+ ["tripCard","daysCard","stopsCard","mapCard","backupCard"].forEach(id=>$(id).hidden=false);
+ render();
+ subscribe();
+}
+
+function render(){
+ if(!current)return;
+ $("dateSummary").textContent=fmt(current.start_date)+" – "+fmt(current.end_date);
+ $("dayTabs").innerHTML=dates().map(d=>`<button class="day ${d===selectedDate?"active":""}" data-date="${d}">${short(d)}</button>`).join("");
+ let a=stops.filter(x=>x.stop_date===selectedDate).sort((x,y)=>(x.stop_time||"").localeCompare(y.stop_time||""));
+ $("schedule").innerHTML=a.map(x=>`
+ <div class="item ${x.is_done?"done":""}">
+  <div class="itemtop">
+   <input type="checkbox" ${x.is_done?"checked":""} onchange="toggleStop('${x.id}',this.checked)">
+   <span class="itemname">${safe(x.name)}</span>
+   <span class="time">${safe((x.stop_time||"").slice(0,5))}</span>
+  </div>
+  <div class="muted">${safe(x.address)}</div>
+  ${x.note?`<div class="muted">${safe(x.note)}</div>`:""}
+  <div class="actions">
+   <button class="secondary" onclick="editStop('${x.id}')">Ändra</button>
+   <button class="danger" onclick="deleteStop('${x.id}')">Ta bort</button>
+   <button class="secondary" onclick="window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(${JSON.stringify(x.address)}),'_blank')">Hitta hit</button>
+  </div>
+ </div>`).join("")||'<p class="hint">Inga stopp den här dagen ännu.</p>';
+ drawMap();
+}
+
+$("dayTabs").onclick=e=>{
+ let b=e.target.closest("[data-date]");
+ if(b){selectedDate=b.dataset.date;render()}
+};
+
+$("showStopForm").onclick=()=>{
+ $("stopForm").hidden=false;
+ $("stopDate").value=selectedDate;
+ $("stopForm").scrollIntoView({behavior:"smooth"});
+};
+
+$("cancelStop").onclick=()=>{
+ $("stopForm").hidden=true;
+ $("stopForm").reset();
+};
+
+$("stopForm").onsubmit=async e=>{
+ e.preventDefault();
+ let id=$("stopId").value;
+ let obj={
+  trip_id:current.id,
+  name:$("stopName").value.trim(),
+  address:$("address").value.trim(),
+  stop_time:$("stopTime").value||null,
+  stop_date:$("stopDate").value,
+  note:$("note").value.trim(),
+  is_done:false
+ };
+ let r=id
+  ?await sb.from("trip_stops").update(obj).eq("id",id)
+  :await sb.from("trip_stops").insert(obj);
+ if(r.error){alert("Kunde inte spara stoppet: "+r.error.message);return}
+ $("stopForm").hidden=true;
+ $("stopForm").reset();
+ selectedDate=obj.stop_date;
+ await loadTrip();
+};
+
+window.editStop=id=>{
+ let x=stops.find(s=>s.id===id);
+ $("stopId").value=id;
+ $("stopName").value=x.name;
+ $("address").value=x.address;
+ $("stopTime").value=(x.stop_time||"").slice(0,5);
+ $("stopDate").value=x.stop_date;
+ $("note").value=x.note||"";
+ $("stopForm").hidden=false;
+};
+
+window.deleteStop=async id=>{
+ if(!confirm("Ta bort stoppet?"))return;
+ let r=await sb.from("trip_stops").delete().eq("id",id);
+ if(r.error)alert(r.error.message);
+ else await loadTrip();
+};
+
+window.toggleStop=async(id,v)=>{
+ let r=await sb.from("trip_stops").update({is_done:v}).eq("id",id);
+ if(r.error)alert(r.error.message);
+ else await loadTrip();
+};
+
+$("saveDetails").onclick=async()=>{
+ let name=$("tripName").value.trim();
+ let start=$("startDate").value;
+ let end=$("endDate").value;
+ if(!name||!start||!end||end<start)return alert("Kontrollera namn och datum.");
+ let r=await sb.from("trips").update({name,start_date:start,end_date:end}).eq("id",current.id);
+ if(r.error)return alert("Kunde inte spara resans namn/datum: "+r.error.message);
+ let obj={};
+ ["hotel","outbound","return","events","other"].forEach(k=>obj[k]=$(k).value.trim());
+ let q=await sb.from("trip_details").upsert({
+  trip_id:current.id,details:obj,updated_at:new Date().toISOString()
+ },{onConflict:"trip_id"});
+ if(q.error)return alert("Resans uppgifter kunde inte sparas: "+q.error.message);
+ current.name=name;
+ current.start_date=start;
+ current.end_date=end;
+ selectedDate=start;
+ await loadTrips();
+};
+
+$("newTrip").onclick=async()=>{
+ let name=prompt("Vad ska resan heta?");
+ if(!name?.trim())return;
+ let start=prompt("Första resdagen (ÅÅÅÅ-MM-DD):",new Date().toISOString().slice(0,10));
+ if(!start||!/^\d{4}-\d{2}-\d{2}$/.test(start))return alert("Fel datum.");
+ let end=prompt("Sista resdagen (ÅÅÅÅ-MM-DD):",start);
+ if(!end||!/^\d{4}-\d{2}-\d{2}$/.test(end))return alert("Fel datum.");
+ if(end<start)return alert("Kontrollera slutdatum.");
+ let r=await sb.rpc("create_trip",{p_name:name.trim()});
+ if(r.error)return alert("Kunde inte skapa resan: "+r.error.message);
+ let id=typeof r.data==="string"?r.data:r.data?.id;
+ if(!id)return alert("Resan skapades men ID kunde inte läsas. Ladda om sidan.");
+ let u=await sb.from("trips").update({start_date:start,end_date:end}).eq("id",id);
+ if(u.error)return alert(u.error.message);
+ current=null;
+ await loadTrips();
+};
+
+$("invite").onclick=async()=>{
+ if(!current)return;
+ let r=await sb.rpc("create_trip_invitation",{p_trip_id:current.id});
+ if(r.error)return alert("Kunde inte skapa inbjudan: "+r.error.message);
+ let token=typeof r.data==="string"?r.data:r.data?.token;
+ if(!token)return alert("Inbjudan skapades men länken kunde inte läsas.");
+ $("inviteUrl").value=location.origin+location.pathname+"?invite="+encodeURIComponent(token);
+ $("inviteBox").hidden=false;
+};
+
+$("copyInvite").onclick=async()=>{
+ try{
+  await navigator.clipboard.writeText($("inviteUrl").value);
+  alert("Inbjudningslänken är kopierad!");
+ }catch(e){
+  $("inviteUrl").select();
+  alert("Markera och kopiera länken manuellt.");
+ }
+};
+
+function drawMap(){
+ if(!window.L)return;
+ if(!map){
+  map=L.map("map").setView([51.51,-.13],12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
+  markers=L.layerGroup().addTo(map);
+ }
+ markers.clearLayers();
+ let pts=[];
+ stops.filter(x=>x.stop_date===selectedDate&&!x.is_done&&x.lat!=null&&x.lon!=null).forEach(x=>{
+  let p=[x.lat,x.lon];pts.push(p);
+  L.marker(p).addTo(markers).bindPopup(safe(x.name));
+ });
+ if(pts.length)map.fitBounds(L.latLngBounds(pts).pad(.2));
+ setTimeout(()=>map.invalidateSize(),100);
+}
+
+$("googleRoute").onclick=()=>{
+ let a=stops.filter(x=>x.stop_date===selectedDate&&!x.is_done);
+ if(!a.length)return alert("Inga stopp den här dagen.");
+ let u="https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(a[0].address)+"&destination="+encodeURIComponent(a[a.length-1].address)+"&travelmode=transit";
+ if(a.length>2)u+="&waypoints="+encodeURIComponent(a.slice(1,-1).map(x=>x.address).join("|"));
+ window.open(u,"_blank");
+};
+
+$("importBackup").onclick=async()=>{
+ let f=$("backupFile").files[0];
+ if(!f)return alert("Välj först din JSON-säkerhetskopia.");
+ let data;
+ try{data=JSON.parse(await f.text())}catch(e){return alert("Filen kunde inte läsas.")}
+ if(!data.trips?.length)return alert("Säkerhetskopian innehåller inga resor.");
+ if(!confirm("Importera resorna till ditt konto? Befintliga resor påverkas inte."))return;
+ for(let t of data.trips){
+  let r=await sb.rpc("create_trip",{p_name:t.name||"Importerad resa"});
+  if(r.error){alert("Importen stoppades: "+r.error.message);return}
+  let id=typeof r.data==="string"?r.data:r.data?.id;
+  if(!id){alert("Resan skapades men importen kunde inte fortsätta.");return}
+  let u=await sb.from("trips").update({start_date:t.start,end_date:t.end}).eq("id",id);
+  if(u.error){alert(u.error.message);return}
+  let det=await sb.from("trip_details").upsert({trip_id:id,details:t.details||{}},{onConflict:"trip_id"});
+  if(det.error){alert(det.error.message);return}
+  for(let x of (t.items||[])){
+   let s=await sb.from("trip_stops").insert({
+    trip_id:id,name:x.name||"Stopp",address:x.address||"",
+    stop_date:x.date||t.start,stop_time:x.time||null,note:x.note||"",
+    lat:x.lat??null,lon:x.lon??null,is_done:(t.done||[]).includes(x.id)
+   });
+   if(s.error){alert("Import av stopp misslyckades: "+s.error.message);return}
+  }
+ }
+ alert("Importen är klar!");
+ current=null;
+ await loadTrips();
+};
+
+function subscribe(){
+ if(channel)sb.removeChannel(channel);
+ channel=sb.channel("trip-"+current.id)
+ .on("postgres_changes",{event:"*",schema:"public",table:"trip_stops",filter:"trip_id=eq."+current.id},refreshStops)
+ .on("postgres_changes",{event:"*",schema:"public",table:"trip_details",filter:"trip_id=eq."+current.id},refreshDetails)
+ .on("postgres_changes",{event:"*",schema:"public",table:"trips",filter:"id=eq."+current.id},refreshTrip)
+ .subscribe();
+}
+
+async function refreshStops(){
+ if(!current)return;
+ let r=await sb.from("trip_stops").select("*").eq("trip_id",current.id).order("stop_date").order("stop_time");
+ if(!r.error){stops=r.data;render()}
+}
+
+async function refreshDetails(){
+ if(!current)return;
+ let r=await sb.from("trip_details").select("details").eq("trip_id",current.id).maybeSingle();
+ if(!r.error&&r.data){
+  details=r.data.details||{};
+  ["hotel","outbound","return","events","other"].forEach(k=>$(k).value=details[k]||"");
+ }
+}
+
+async function refreshTrip(){
+ if(!current)return;
+ let r=await sb.from("trips").select("id,name,start_date,end_date,owner_id").eq("id",current.id).single();
+ if(!r.error){
+  Object.assign(current,r.data);
+  $("tripName").value=current.name;
+  $("startDate").value=current.start_date;
+  $("endDate").value=current.end_date;
+  render();
+ }
+}
+
+sb.auth.onAuthStateChange((_event,session)=>{
+ if(session?.user&&!user)setTimeout(boot,0);
+ else if(!session){user=null;showApp(false)}
+});
+
+boot();
+</script>
+</body>
+</html>
