@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html>
+
+<html lang="sv">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="theme-color" content="#172b3a">
+
+<title>Min Londonresa 🇬🇧</title>
+
+<style>
+
+body{margin:0;font-family:Arial,sans-serif;background:#f4f2ed;color:#243342}
+
+header{background:#172b3a;color:white;padding:25px 18px}
+
+h1{margin:0 0 8px;font-size:27px}
+
+header p{margin:0;color:#dce5ec}
+
+main{padding:16px;max-width:700px;margin:auto}
+
+.tabs{display:flex;gap:7px;overflow-x:auto;margin-bottom:15px}
+
+button{border:0;border-radius:10px;padding:12px;background:#dce3e8;color:#172b3a;font-weight:bold}
+
+button.active{background:#172b3a;color:white}
+
+.card{background:white;border-radius:14px;padding:15px;margin:12px 0;box-shadow:0 2px 8px #0001}
+
+.stop{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid #eee}
+
+.stop:last-child{border:0}
+
+.stop input{width:21px;height:21px;margin-top:2px}
+
+.stop label{flex:1;line-height:1.4}
+
+.done{text-decoration:line-through;color:#888}
+
+a{color:#176b91}
+
+.small{font-size:13px;color:#667}
+
+input[type=text]{padding:12px;border:1px solid #bbb;border-radius:9px;width:65%;max-width:280px}
+
+.add{background:#176b91;color:white;margin:8px 0}
+
+.map{display:block;text-align:center;background:#e6eef2;padding:13px;border-radius:10px;margin-top:12px;text-decoration:none}
+
+footer{text-align:center;color:#777;font-size:12px;padding:20px}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>🇬🇧 Min Londonresa</h1>
+
+<p>6–10 november 2026 · London</p>
+
+</header>
+
+<main>
+
+<div class="card">
+
+<strong>🏨 Hotell</strong><br>
+
+DoubleTree by Hilton London – Chelsea<br>
+
+Imperial Road, London SW6 2GA
+
+<br><br><strong>✈️ Flyg</strong><br>
+
+Ankomst: Gatwick fredag 6/11<br>
+
+Hemresa: Gatwick tisdag 10/11 kl. 17:30
+
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="card">
+
+<h2 id="daytitle"></h2>
+
+<p class="small" id="daynote"></p>
+
+<div id="stops"></div>
+
+<div style="margin-top:15px">
+
+<input id="newstop" type="text" placeholder="Lägg till ett stopp">
+
+<button class="add" onclick="addStop()">＋ Lägg till</button>
+
+</div>
+
+<a class="map" id="maplink" target="_blank">📍 Öppna dagens platser i Google Maps</a>
+
+</div>
+
+<div class="card">
+
+<strong>🎤 Söndag 8 november</strong><br>
+
+Konsert kl. 18:30<br>
+
+O2 Academy Brixton<br>
+
+211 Stockwell Road, London SW9 9SL
+
+</div>
+
+<div class="card">
+
+<strong>🧳 Kom ihåg</strong>
+
+<p class="small">Ankomst till Gatwick i god tid före hemresan. Sikta på att lämna hotellet omkring kl. 13:00 på tisdagen, men kontrollera aktuella tågtider.</p>
+
+<button onclick="backup()">Spara säkerhetskopia</button>
+
+<button onclick="document.getElementById('restore').click()">Återställ kopia</button>
+
+<input id="restore" type="file" accept=".json" hidden onchange="restore(event)">
+
+</div>
+
+</main>
+
+<footer>Din personliga Londonresa · Ändringar sparas på den här enheten</footer>
+
+<script>
+
+const days=[
+
+{date:"Fredag 6 november",note:"Ankomst och incheckning",stops:["Flyg från Arlanda ca 14:30","Ankomst Gatwick","Resa till hotellet","Checka in på DoubleTree by Hilton London – Chelsea","Middag och vila"]},
+
+{date:"Lördag 7 november",note:"Shopping och sevärdheter",stops:["Camden Market och Camden Lock","Madame Tussauds","British Museum","Hollister – Regent Street","Hard Rock Cafe – Piccadilly Circus"]},
+
+{date:"Söndag 8 november",note:"Park och konsert",stops:["Battersea Park","Vila och gör dig klar","Konsert 18:30 – O2 Academy Brixton"]},
+
+{date:"Måndag 9 november",note:"London runt",stops:["Brick Lane","Millennium Bridge","London Eye","Big Ben","St James's Park","Trafalgar Square","10 John Adam Street","Covent Garden"]},
+
+{date:"Tisdag 10 november",note:"Hemresa",stops:["Frukost och packa","Checka ut från hotellet","Lunch eller sista shopping","Resa till Gatwick","Flyg hem kl. 17:30"]}
+
+];
+
+let current=0;
+
+let saved=JSON.parse(localStorage.getItem("londonStops")||"null")||days.map(d=>d.stops.map(s=>({name:s,done:false})));
+
+function save(){localStorage.setItem("londonStops",JSON.stringify(saved))}
+
+function show(){
+
+document.getElementById("tabs").innerHTML=days.map((d,i)=>`<button class="${i===current?'active':''}" onclick="current=${i};show()">${["Fre","Lör","Sön","Mån","Tis"][i]}</button>`).join("");
+
+document.getElementById("daytitle").textContent=days[current].date;
+
+document.getElementById("daynote").textContent=days[current].note;
+
+document.getElementById("stops").innerHTML=saved[current].map((s,i)=>`<div class="stop"><input type="checkbox" ${s.done?'checked':''} onchange="saved[${current}][${i}].done=this.checked;save();show()"><label class="${s.done?'done':''}">${esc(s.name)}</label><button onclick="removeStop(${i})">×</button></div>`).join("");
+
+let q=saved[current].map(s=>s.name+" London").join("/");
+
+document.getElementById("maplink").href="https://www.google.com/maps/dir/"+encodeURIComponent(q);
+
+}
+
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function addStop(){let v=document.getElementById("newstop").value.trim();if(!v)return;saved[current].push({name:v,done:false});document.getElementById("newstop").value="";save();show()}
+
+function removeStop(i){if(confirm("Ta bort detta stopp?")){saved[current].splice(i,1);save();show()}}
+
+function backup(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(saved)],{type:"application/json"}));a.download="londonresa-backup.json";a.click();URL.revokeObjectURL(a.href)}
+
+function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{saved=JSON.parse(r.result);save();show();alert("Kopian är återställd!")}catch{alert("Filen kunde inte läsas")}};r.readAsText(f)}
+
+show();
+
+</script>
+
+</body>
+
+</html>
