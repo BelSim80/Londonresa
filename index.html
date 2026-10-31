@@ -15,7 +15,7 @@
 :root{--navy:#17365d;--blue:#24558a;--ink:#172536;--muted:#536579;--bg:#f1f4f8;--card:#fff;--line:#d5deea;--green:#16845b}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.5}
-header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:calc(20px + env(safe-area-inset-top)) 18px 22px}
+header{background:linear-gradient(135deg,#17365d,#28618d);color:white;padding:calc(20px + env(safe-area-inset-top)) 18px 22px;position:relative}
 h1{font-size:29px;margin:7px 0}
 header p{margin:0;color:#e4edf7;font-size:16px}
 .topline{font-size:13px;letter-spacing:.08em}
@@ -23,6 +23,10 @@ header p{margin:0;color:#e4edf7;font-size:16px}
 .stat{background:#ffffff20;border:1px solid #ffffff35;border-radius:13px;padding:10px;flex:1;text-align:center}
 .stat b{display:block;font-size:23px}
 .stat span{font-size:13px}
+.menu-toggle{position:absolute;top:calc(15px + env(safe-area-inset-top));right:16px;background:#ffffff25;color:white;border:1px solid #ffffff70;font-size:25px;padding:8px 13px;z-index:2001}
+.menu-panel{position:absolute;z-index:2000;top:calc(68px + env(safe-area-inset-top));right:14px;width:min(270px,calc(100vw - 28px));background:white;border-radius:14px;padding:8px;box-shadow:0 8px 25px #0003}
+.menu-panel button{display:block;width:100%;text-align:left;background:white;color:var(--ink);padding:15px;border-bottom:1px solid var(--line);border-radius:8px}
+.menu-panel button:last-child{border-bottom:0}
 main{max-width:780px;margin:auto;padding:14px 13px 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #152c4510}
 .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 13px;font-size:19px;font-weight:800}
@@ -59,6 +63,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .suggestions{position:absolute;z-index:1000;top:100%;left:0;right:0;background:white;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 22px #0002;max-height:240px;overflow:auto}
 .suggestions button{display:block;width:100%;text-align:left;background:white;border-radius:0;border-bottom:1px solid #edf0f3;padding:13px;font-size:15px}
 .hidden{display:none!important}
+[hidden]{display:none!important}
 .info-row{padding:12px 0;border-bottom:1px solid var(--line)}
 .info-row:last-child{border-bottom:0}
 .info-label{font-size:14px;color:var(--muted);font-weight:700}
@@ -69,6 +74,11 @@ footer{text-align:center;color:#65758a;font-size:13px;padding:12px}
 </head>
 <body>
 <header>
+ <button class="menu-toggle" id="menuToggle" aria-label="Öppna meny" aria-expanded="false">☰</button>
+ <nav class="menu-panel hidden" id="menuPanel">
+  <button type="button" data-show="tripsSection">🧳 Mina resor</button>
+  <button type="button" data-show="detailsSection">📝 Resans uppgifter</button>
+ </nav>
  <div class="topline">DIN PERSONLIGA RESEPLANERARE</div>
  <h1>Resor & äventyr ✈️</h1>
  <p>Planera, hitta och håll ordning på dina resor.</p>
@@ -79,7 +89,7 @@ footer{text-align:center;color:#65758a;font-size:13px;padding:12px}
  </div>
 </header>
 <main>
-<section class="card">
+<section class="card" id="tripsSection" hidden>
  <div class="section-title"><span>🧳 Mina resor</span><button class="primary" id="newTrip">＋ Ny resa</button></div>
  <p class="hint">Välj vilken resa du vill planera eller titta på.</p>
  <label for="tripSelect">Vald resa</label><select id="tripSelect"></select>
@@ -89,7 +99,7 @@ footer{text-align:center;color:#65758a;font-size:13px;padding:12px}
  </div>
 </section>
 
-<section class="card">
+<section class="card" id="detailsSection" hidden>
  <div class="section-title">📝 Resans uppgifter</div>
  <p class="hint">Här samlar du viktig information om resan. Tryck på Ändra när du vill uppdatera något.</p>
  <div id="tripDetails"></div>
@@ -110,7 +120,7 @@ footer{text-align:center;color:#65758a;font-size:13px;padding:12px}
 
 <section class="card">
  <div class="section-title">📅 Resans dagar</div>
- <p class="hint">Välj första och sista dagen. Appen skapar dagarna automatiskt.</p>
+ <p class="hint">Välj en dag för att se dagens aktiviteter.</p>
  <div class="row">
   <div><label>Första dag</label><input type="date" id="startDate"></div>
   <div><label>Sista dag</label><input type="date" id="endDate"></div>
@@ -189,12 +199,12 @@ const initial=[
 const dayNames=["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"];
 const $=id=>document.getElementById(id);
 const uid=()=>"s"+Date.now()+Math.random().toString(16).slice(2);
-let db,tripId,selectedDate,editingId=null,chosenPlace=null,map,layer,line,searchTimer=0;
 function iso(d){return d.toISOString().slice(0,10)}
 function addDays(s,n){let d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)}
 function fmt(s){return new Date(s+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"long",year:"numeric"})}
 function short(s){let d=new Date(s+"T12:00:00");return dayNames[d.getDay()].slice(0,3)+" "+d.getDate()+"/"+(d.getMonth()+1)}
 function makeTrip(name,start,end,items=[],done=[],details={}){return{id:uid(),name,start,end,items,done,details}}
+let db,tripId,selectedDate,editingId=null,chosenPlace=null,map,layer,line,searchTimer=0;
 function trip(){return db.trips.find(t=>t.id===tripId)}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));stats()}
 function dates(t){let a=[];for(let d=t.start;d<=t.end&&a.length<400;d=addDays(d,1))a.push(d);return a}
@@ -210,11 +220,7 @@ function load(){
  try{
   let old=JSON.parse(localStorage.getItem(OLD));
   if(old&&Array.isArray(old.items)){
-   items=old.items.map(x=>({
-    id:x.id||uid(),name:x.name||"Nytt stopp",address:x.address||"",
-    time:x.time||"",note:x.note||"",lat:x.lat??null,lon:x.lon??null,
-    date:x.date||({"Fredag":"2026-11-06","Lördag":"2026-11-07","Söndag":"2026-11-08","Måndag":"2026-11-09","Tisdag":"2026-11-10"}[x.day]||"2026-11-07")
-   }));
+   items=old.items.map(x=>({id:x.id||uid(),name:x.name||"Nytt stopp",address:x.address||"",time:x.time||"",note:x.note||"",lat:x.lat??null,lon:x.lon??null,date:x.date||({"Fredag":"2026-11-06","Lördag":"2026-11-07","Söndag":"2026-11-08","Måndag":"2026-11-09","Tisdag":"2026-11-10"}[x.day]||"2026-11-07")}));
    done=Array.isArray(old.done)?old.done.slice():[];
   }
  }catch(e){}
@@ -241,10 +247,8 @@ function renderTrips(){
 }
 function renderDetails(){
  let d=trip().details||{};
- $("tripDetails").innerHTML=[
-  ["Boende / hotell",d.hotel],["Flygresa dit",d.outbound],["Hemresa",d.return],
-  ["Evenemang och biljetter",d.events],["Övrig information",d.other]
- ].map(([label,value])=>`<div class="info-row"><div class="info-label">${label}</div><div class="info-value">${value?esc(value):"Inte ifyllt ännu"}</div></div>`).join("");
+ $("tripDetails").innerHTML=[["Boende / hotell",d.hotel],["Flygresa dit",d.outbound],["Hemresa",d.return],["Evenemang och biljetter",d.events],["Övrig information",d.other]]
+ .map(([label,value])=>`<div class="info-row"><div class="info-label">${label}</div><div class="info-value">${value?esc(value):"Inte ifyllt ännu"}</div></div>`).join("");
  $("detailName").value=trip().name;
  $("detailHotel").value=d.hotel||"";
  $("detailOutbound").value=d.outbound||"";
@@ -277,15 +281,10 @@ function render(){
  $("stopDate").value=selectedDate;drawMap();stats();
 }
 function toggle(id,v){let t=trip();t.done=v?[...t.done,id]:t.done.filter(x=>x!==id);save();render()}
-function removeStop(id){
- if(!confirm("Vill du ta bort det här stoppet?"))return;
- let t=trip();t.items=t.items.filter(x=>x.id!==id);t.done=t.done.filter(x=>x!==id);save();render();
-}
-function navigate(id){
- let x=trip().items.find(a=>a.id===id);
- window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(x.address),"_blank");
-}
+function removeStop(id){if(!confirm("Vill du ta bort det här stoppet?"))return;let t=trip();t.items=t.items.filter(x=>x.id!==id);t.done=t.done.filter(x=>x!==id);save();render()}
+function navigate(id){let x=trip().items.find(a=>a.id===id);window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(x.address),"_blank")}
 function drawMap(all=false){
+ if(!window.L)return;
  if(!map){
   map=L.map("map",{scrollWheelZoom:false}).setView([51.51,-.13],12);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);
@@ -343,9 +342,7 @@ $("address").addEventListener("input",()=>{
   }catch(e){box.classList.add("hidden")}
  },650);
 });
-$("dayTabs").onclick=e=>{
- let b=e.target.closest("[data-date]");if(b){selectedDate=b.dataset.date;clearForm();render()}
-};
+$("dayTabs").onclick=e=>{let b=e.target.closest("[data-date]");if(b){selectedDate=b.dataset.date;clearForm();render()}};
 $("tripSelect").onchange=e=>{tripId=e.target.value;selectedDate=trip().start;clearForm();render()};
 $("startDate").onchange=()=>{
  let t=trip(),v=$("startDate").value;if(!v)return;
@@ -374,20 +371,12 @@ $("deleteTrip").onclick=()=>{
  if(!confirm("Ta bort resan och alla dess uppgifter och stopp?"))return;
  db.trips=db.trips.filter(t=>t.id!==tripId);tripId=db.trips[0].id;selectedDate=trip().start;save();render();
 };
-$("editDetails").onclick=()=>{
- $("detailsForm").hidden=false;$("detailsForm").scrollIntoView({behavior:"smooth",block:"center"});
-};
+$("editDetails").onclick=()=>{$("detailsForm").hidden=false;$("detailsForm").scrollIntoView({behavior:"smooth",block:"center"})};
 $("cancelDetails").onclick=()=>{$("detailsForm").hidden=true;renderDetails()};
 $("detailsForm").onsubmit=e=>{
  e.preventDefault();let t=trip();
  t.name=$("detailName").value.trim()||"Min resa";
- t.details={
-  hotel:$("detailHotel").value.trim(),
-  outbound:$("detailOutbound").value.trim(),
-  return:$("detailReturn").value.trim(),
-  events:$("detailEvents").value.trim(),
-  other:$("detailOther").value.trim()
- };
+ t.details={hotel:$("detailHotel").value.trim(),outbound:$("detailOutbound").value.trim(),return:$("detailReturn").value.trim(),events:$("detailEvents").value.trim(),other:$("detailOther").value.trim()};
  save();$("detailsForm").hidden=true;render();
 };
 $("fitMap").onclick=()=>drawMap(true);
@@ -415,6 +404,33 @@ $("importFile").onchange=async e=>{
  }catch(err){alert("Kunde inte läsa säkerhetskopian.")}
  e.target.value="";
 };
+
+// Tre-strecksmenyn
+$("menuToggle").onclick=()=>{
+ const panel=$("menuPanel");
+ const isOpen=panel.classList.toggle("hidden")===false;
+ $("menuToggle").setAttribute("aria-expanded",String(isOpen));
+};
+$("menuPanel").onclick=e=>{
+ const button=e.target.closest("[data-show]");
+ if(!button)return;
+ $("tripsSection").hidden=true;
+ $("detailsSection").hidden=true;
+ const section=$(button.dataset.show);
+ section.hidden=false;
+ $("menuPanel").classList.add("hidden");
+ $("menuToggle").setAttribute("aria-expanded","false");
+ section.scrollIntoView({behavior:"smooth",block:"start"});
+};
+
+// Stäng menyn om man trycker utanför den
+document.addEventListener("click",e=>{
+ if(!$("menuPanel").contains(e.target)&&e.target!==$("menuToggle")){
+  $("menuPanel").classList.add("hidden");
+  $("menuToggle").setAttribute("aria-expanded","false");
+ }
+});
+
 load();selectedDate=trip().start;render();
 </script>
 </body>
